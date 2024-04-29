@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "954565091677",
+    "project_id": "scmu-2024-smartconnect",
+    "storage_bucket": "scmu-2024-smartconnect.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:954565091677:android:0c8a0321e3b16b48ee48b4",
+        "android_client_info": {
+          "package_name": "com.smartconnect.scmu_2024_smartconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKcUd5keWxt8wD6VstS283BtlpsyCPQ3w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
