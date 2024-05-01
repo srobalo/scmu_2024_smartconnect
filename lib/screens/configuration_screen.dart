@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'excuses.dart';
+import '../utils/excuses.dart';
+import 'package:scmu_2024_smartconnect/notification_manager.dart';
+import 'package:scmu_2024_smartconnect/utils/wifi_info.dart';
 
 class ConfigurationScreen extends StatelessWidget {
   const ConfigurationScreen({Key? key}) : super(key: key);
@@ -24,10 +26,10 @@ class ConfigurationScreen extends StatelessWidget {
             ),
             body: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Change to space between
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded( // First part
+                  Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -38,24 +40,23 @@ class ConfigurationScreen extends StatelessWidget {
                           },
                           child: const Text('Request Permissions'),
                         ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            await _requestNotificationTest();
+                          },
+                          child: const Text('Test Notification'),
+                        ),
                       ],
                     ),
                   ),
-                  Expanded( // Second part
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end, // Change to end
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          '📱 Version: ${packageInfo.version}     Last Updated: ${DateFormat('dd-MM-yyyy').format(DateTime.now())}',
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          '${generateExcuse()}',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                  SizedBox(
+                    width: double.infinity, // Specify the desired width in pixels
+                    height: 120, // Specify the desired height in pixels
+                    child: WifiInfoWidget(),
+                  ),
+                  Text(
+                    '📱 Version: ${packageInfo.version}     Last Updated: ${DateFormat('dd-MM-yyyy').format(DateTime.now())}',
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -74,4 +75,15 @@ class ConfigurationScreen extends StatelessWidget {
       // GPS permission denied
     }
   }
+
+  Future<void> _requestNotificationTest() async {
+    final NotificationManager notificationManager = NotificationManager();
+    late String excuse = generateExcuse();
+    await notificationManager.showNotification(
+      id: DateTime.now().second + DateTime.now().millisecond,
+      title: 'Notification Test',
+      body: excuse,
+    );
+  }
+
 }
