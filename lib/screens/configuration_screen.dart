@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'excuses.dart';
 
 class ConfigurationScreen extends StatelessWidget {
   const ConfigurationScreen({Key? key}) : super(key: key);
@@ -23,18 +24,38 @@ class ConfigurationScreen extends StatelessWidget {
             ),
             body: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Change to space between
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      await _requestPermissions();
-                    },
-                    child: const Text('Request Permissions'),
+                  Expanded( // First part
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            await _requestPermissions();
+                          },
+                          child: const Text('Request Permissions'),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    '📱 Version: ${packageInfo.version}     Last Updated: ${DateFormat('dd-MM-yyyy').format(DateTime.now())}',
-                    textAlign: TextAlign.center,
+                  Expanded( // Second part
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end, // Change to end
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          '📱 Version: ${packageInfo.version}     Last Updated: ${DateFormat('dd-MM-yyyy').format(DateTime.now())}',
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          '${generateExcuse()}',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
