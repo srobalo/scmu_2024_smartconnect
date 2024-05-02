@@ -3,6 +3,8 @@ import 'package:scmu_2024_smartconnect/screens/scenes/device.dart';
 import 'package:scmu_2024_smartconnect/screens/scenes_screen.dart';
 import 'package:scmu_2024_smartconnect/three_state_switch.dart';
 import '../defaults/default_values.dart';
+import 'package:http/http.dart' as http;
+
 
 class DevicesScreen extends StatefulWidget {
   const DevicesScreen({Key? key}) : super(key: key);
@@ -26,6 +28,21 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+
+  void sendCommand(String command) async {
+    try {
+      final url = Uri.parse('http://192.168.108.65/$command');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        print('Command sent successfully');
+      } else {
+        print('Failed to send command: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error sending command: $e');
+    }
   }
 
   @override
@@ -92,9 +109,10 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
                   devices[index].state = newState;
                   // Implement logic based on the new state
                   if (newState == DeviceState.on) {
-                    //todo
+                    sendCommand('H');
+                    print("enviou comando do backdoor");
                   } else if (newState == DeviceState.off) {
-                    //todo
+                    sendCommand('L');
                   } else if (newState == DeviceState.auto) {
                     //todo
                   }

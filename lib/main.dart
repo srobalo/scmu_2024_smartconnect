@@ -1,28 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'firebase_options.dart';
-import 'generic_listener.dart';
-//
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/screens/configuration_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/devices_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/metric_screen.dart';
-import 'package:scmu_2024_smartconnect/screens/user_widget.dart';
-import 'package:scmu_2024_smartconnect/notification_manager.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(MyApp());
+void main() {
+  runApp(const MyApp());
 }
+
 class MyApp extends StatelessWidget {
-  MyApp({Key? key});
-  final NotificationManager _notificationManager = NotificationManager();
+  const MyApp({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +49,14 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   static final List<Widget> _widgetOptions = <Widget>[
-    UserWidget(),
+    Center(
+      child: Text(
+        'Welcome',
+        style: TextStyle(fontSize: 24.0, color: textColorDarkTheme),
+      ),
+    ),
     const DevicesScreen(),
     const MetricScreen(),
     const ConfigurationScreen(),
@@ -78,26 +69,10 @@ class _MainPageState extends State<MainPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('S H A S M'),
-        actions: _auth.currentUser != null
-            ? [
-          IconButton(
-            onPressed: () async {
-              await _auth.signOut();
-            },
-            icon: Icon(Icons.logout),
-          ),
-        ]
-            : [],
+        title: const Text('Smart Home'),
       ),
       body: _selectedIndex == 0 || _selectedIndex == 1
           ? Column(

@@ -45,7 +45,7 @@ dependencies:
   connectivity_plus: ^6.0.3
   network_info_plus: ^5.0.3
   shared_preferences: ^2.2.3
-
+  http: ^0.13.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
