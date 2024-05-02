@@ -71,8 +71,16 @@ class ConfigurationScreen extends StatelessWidget {
     final status = await Permission.location.request();
     if (status.isGranted) {
       // GPS permission granted
+      print('Location permission granted');
     } else {
       // GPS permission denied
+      print('Location permission denied');
+      if (status.isPermanentlyDenied) {
+        // The user opted to never again see the permission request dialog for this
+        // app. The only way to change the permission's status now is to let the
+        // user manually enable it in the system settings.
+        openAppSettings();
+      }
     }
   }
 
