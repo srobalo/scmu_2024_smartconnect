@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scmu_2024_smartconnect/screens/registration_screen.dart';
 
+import '../utils/my_preferences.dart';
+
 class LoginScreen extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -16,7 +18,10 @@ class LoginScreen extends StatelessWidget {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
-      ).then((value) => Navigator.pop(context));
+      ).then((value) => {
+        MyPreferences.saveData<String>("USER_EMAIL", email),
+        Navigator.pop(context),
+      });
     } catch (error) {
       // Handle login errors
       showDialog(

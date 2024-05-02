@@ -50,8 +50,8 @@ class ConfigurationScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: double.infinity, // Specify the desired width in pixels
-                    height: 120, // Specify the desired height in pixels
+                    width: double.infinity,
+                    height: 120,
                     child: WifiInfoWidget(),
                   ),
                   Text(

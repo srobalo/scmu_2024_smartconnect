@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
 import 'package:scmu_2024_smartconnect/generic_listener.dart';
+import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 
 class UserWidget extends StatefulWidget {
   @override
@@ -33,6 +34,7 @@ class _UserWidgetState extends State<UserWidget> {
           final user = snapshot.data;
           if (user != null) {
             // User is authenticated
+            String email = MyPreferences.loadData<String>("USER_EMAIL") as String;
             return Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -51,7 +53,7 @@ class _UserWidgetState extends State<UserWidget> {
                         ),
                         SizedBox(width: 10),
                         Text(
-                          user.displayName ?? user.email ?? 'User',
+                          email,//user.displayName ?? user.email ?? 'User',
                           style: TextStyle(fontSize: 20),
                         ),
                       ],
