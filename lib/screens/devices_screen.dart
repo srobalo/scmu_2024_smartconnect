@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/device.dart';
+import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/screens/scenes_screen.dart';
 import 'package:scmu_2024_smartconnect/three_state_switch.dart';
 import '../defaults/default_values.dart';
 import 'package:http/http.dart' as http;
+
+import 'add_device_screen.dart';
 
 
 class DevicesScreen extends StatefulWidget {
@@ -55,19 +57,39 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
           indicatorColor: Colors.black,
           tabs: const [
             Tab(
-              child: Text(
-                'Devices',
-                style: TextStyle(
-                  color: Colors.black,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.devices_other,
+                    color: Colors.black,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Devices',
+                    style: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
             ),
             Tab(
-              child: Text(
-                'Scenes',
-                style: TextStyle(
-                  color: Colors.black,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.auto_awesome_motion,
+                    color: Colors.black,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Scenes',
+                    style: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -84,42 +106,59 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   }
 
   Widget _buildDevicesTab() {
-    return ListView.builder(
-      itemCount: devices.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: AssetImage(devices[index].icon),
-            backgroundColor: backgroundColorTertiary,
+    return Stack(
+      children: [
+        ListView.builder(
+          itemCount: devices.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundImage: AssetImage(devices[index].icon),
+                backgroundColor: backgroundColorTertiary,
+              ),
+              title: Text(
+                devices[index].name,
+                style: TextStyle(color: textColorDarkTheme),
+              ),
+              subtitle: Text(
+                devices[index].domain,
+                style: TextStyle(color: textColorDarkThemeSecondary),
+              ),
+              trailing: SizedBox(
+                width: 162, // Adjust the width as needed
+                child: ThreeStateSwitch(
+                  value: devices[index].state,
+                  onChanged: (newState) {
+                    setState(() {
+                      devices[index].state = newState;
+                      if (devices[index].commandId == null) {
+                        print("Error: No commandId for device ${devices[index].name}");
+                        return;  // Prevent further action if commandId is null
+                      }
+                      String commandAction = (newState == DeviceState.on) ? "on" : "off";
+                      sendCommand(devices[index].commandId, commandAction);
+                      print("Command sent for ${devices[index].name} with action $commandAction");
+                    });
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+        Positioned(
+          bottom: 16.0,
+          right: 16.0,
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddDeviceScreen()),
+              );
+            },
+            child: const Icon(Icons.add),
           ),
-          title: Text(
-            devices[index].name,
-            style: TextStyle(color: textColorDarkTheme), //style: TextStyle(color: Colors.red), //if unavailable
-          ),
-          subtitle: Text(
-            devices[index].domain,
-            style: TextStyle(color: textColorDarkThemeSecondary),
-          ),
-          trailing: SizedBox(
-            width: 162, // Adjust the width as needed
-            child: ThreeStateSwitch(
-              value: devices[index].state,
-              onChanged: (newState) {
-                setState(() {
-                  devices[index].state = newState;
-                  if (devices[index].commandId == null) {
-                    print("Error: No commandId for device ${devices[index].name}");
-                    return;  // Prevent further action if commandId is null
-                  }
-                  String commandAction = (newState == DeviceState.on) ? "on" : "off";
-                  sendCommand(devices[index].commandId, commandAction);
-                  print("Command sent for ${devices[index].name} with action $commandAction");
-                });
-              },
-            ),
-          ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

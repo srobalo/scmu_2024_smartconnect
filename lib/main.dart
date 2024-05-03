@@ -10,7 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import 'firebase_options.dart';
 import 'generic_listener.dart';
-import 'package:scmu_2024_smartconnect/screens/user_widget.dart';
+import 'package:scmu_2024_smartconnect/widgets/user_widget.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
 
 void main() async {
@@ -25,8 +25,10 @@ class MyApp extends StatelessWidget {
   MyApp({Key? key});
   final NotificationManager _notificationManager = NotificationManager();
 
-  @override  Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Smart Home',
       theme: ThemeData(
         primaryColor: primaryColor,

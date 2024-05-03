@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/device.dart';
+import 'package:scmu_2024_smartconnect/objects/device.dart';
 
 import 'defaults/default_values.dart';
 

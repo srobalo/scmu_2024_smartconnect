@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../objects/device.dart';
 import '../utils/excuses.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
 import 'package:scmu_2024_smartconnect/utils/wifi_info.dart';
+import 'package:scmu_2024_smartconnect/firebase/database.dart';
+import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
 class ConfigurationScreen extends StatelessWidget {
   const ConfigurationScreen({Key? key}) : super(key: key);
@@ -45,6 +48,12 @@ class ConfigurationScreen extends StatelessWidget {
                             await _requestNotificationTest();
                           },
                           child: const Text('Test Notification'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            await _requestDatabaseTest();
+                          },
+                          child: const Text('Test Database'),
                         ),
                       ],
                     ),
@@ -94,4 +103,28 @@ class ConfigurationScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _requestDatabaseTest() async {
+    // Construct a Notification object
+    EventNotification notification = EventNotification(
+      id: (DateTime.now().second + DateTime.now().millisecond).toString(),
+      title: 'Title',
+      domain: 'Domain',
+      description: 'Description',
+      observation: 'Observation',
+      timestamp: DateTime.now(),
+    );
+
+    // Convert the Notification object to a map
+    Map<String, dynamic> data = {
+      'id': notification.id,
+      'title': notification.title,
+      'domain': notification.domain,
+      'description': notification.description,
+      'observation': notification.observation,
+      'timestamp': notification.timestamp.toIso8601String(),
+    };
+
+    // Send the notification data to Firebase
+    Firebase().sendNotification(data);
+  }
 }

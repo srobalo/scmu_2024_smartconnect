@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/screens/scene_configuration_screen.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/device.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/scene.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/trigger.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/scene_action.dart';
+import 'package:scmu_2024_smartconnect/objects/device.dart';
+import 'package:scmu_2024_smartconnect/objects/scene.dart';
+import 'package:scmu_2024_smartconnect/objects/trigger.dart';
+import 'package:scmu_2024_smartconnect/objects/scene_action.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../defaults/default_values.dart';
 

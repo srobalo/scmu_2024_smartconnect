@@ -1,5 +1,5 @@
-import '../scenes_screen.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/device.dart';
+import 'package:scmu_2024_smartconnect/objects/scene_action.dart';
+import 'package:scmu_2024_smartconnect/objects/device.dart';
 
 class SceneAction {
   final Device device;

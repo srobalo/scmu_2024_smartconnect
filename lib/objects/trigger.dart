@@ -1,5 +1,5 @@
-import '../scenes_screen.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/device.dart';
+import '../screens/scenes_screen.dart';
+import 'package:scmu_2024_smartconnect/objects/device.dart';
 
 class Trigger {
   final Device device;

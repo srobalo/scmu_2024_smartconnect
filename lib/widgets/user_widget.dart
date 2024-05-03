@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
 import 'package:scmu_2024_smartconnect/generic_listener.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
-import 'package:scmu_2024_smartconnect/screens/notification_widget.dart';
+import 'package:scmu_2024_smartconnect/widgets/notification_widget.dart';
 
 class UserWidget extends StatefulWidget {
   @override

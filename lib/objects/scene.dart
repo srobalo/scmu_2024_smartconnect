@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:scmu_2024_smartconnect/screens/scenes/trigger.dart';
-
-import 'scene_action.dart';
+import 'package:scmu_2024_smartconnect/objects/trigger.dart';
+import 'package:scmu_2024_smartconnect/objects/scene_action.dart';
 
 class Scene {
   final String name;
