@@ -17,11 +17,11 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   late TabController _tabController;
 
   List<Device> devices = [
-    Device(name: "Outside Lights", domain: "Garden", icon: "assets/smart_bulb.png", state: DeviceState.off),
-    Device(name: "House Lights", domain: "Home", icon: "assets/smart_bulb.png", state: DeviceState.off),
-    Device(name: "Backdoor", domain: "Home Door", icon: "assets/smart_lock.png", state: DeviceState.off),
-    Device(name: "Garage Door", domain: "Garage", icon: "assets/smart_garage.png", state: DeviceState.off),
-    Device(name: "House Humidity", domain: "Home Environment", icon: "assets/smart_sensor_humidity.png", state: DeviceState.off),
+    Device(name: "Outside Lights", domain: "Garden", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "1"),
+    Device(name: "House Lights", domain: "Home", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "2"),
+    Device(name: "Backdoor", domain: "Home Door", icon: "assets/smart_lock.png", state: DeviceState.off, commandId: "3"),
+    Device(name: "Garage Door", domain: "Garage", icon: "assets/smart_garage.png", state: DeviceState.off, commandId: "4"),
+    Device(name: "House Humidity", domain: "Home Environment", icon: "assets/smart_sensor_humidity.png", state: DeviceState.off, commandId: "5"),
   ]; //for testing
 
   @override
@@ -31,17 +31,17 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   }
 
 
-  void sendCommand(String command) async {
+  void sendCommand(String deviceId, String commandAction) async {
     try {
-      final url = Uri.parse('http://192.168.108.65/$command');
+      final url = Uri.parse('http://172.20.10.13/${deviceId}/${commandAction}');
       final response = await http.get(url);
       if (response.statusCode == 200) {
-        print('Command sent successfully');
+        print('Command sent successfully for $deviceId with action $commandAction');
       } else {
         print('Failed to send command: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error sending command: $e');
+      print('Error sending command for $deviceId: $e');
     }
   }
 
@@ -107,15 +107,13 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
               onChanged: (newState) {
                 setState(() {
                   devices[index].state = newState;
-                  // Implement logic based on the new state
-                  if (newState == DeviceState.on) {
-                    sendCommand('H');
-                    print("enviou comando do backdoor");
-                  } else if (newState == DeviceState.off) {
-                    sendCommand('L');
-                  } else if (newState == DeviceState.auto) {
-                    //todo
+                  if (devices[index].commandId == null) {
+                    print("Error: No commandId for device ${devices[index].name}");
+                    return;  // Prevent further action if commandId is null
                   }
+                  String commandAction = (newState == DeviceState.on) ? "on" : "off";
+                  sendCommand(devices[index].commandId, commandAction);
+                  print("Command sent for ${devices[index].name} with action $commandAction");
                 });
               },
             ),

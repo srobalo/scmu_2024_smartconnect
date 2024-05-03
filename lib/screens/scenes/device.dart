@@ -7,6 +7,7 @@ class Device {
   final String domain;
   final String icon;
   late DeviceState state;
+  final String commandId;
   final List<SceneAction> sceneActions;
   final List<Trigger> triggers;
 
@@ -15,6 +16,7 @@ class Device {
     required this.domain,
     required this.icon,
     this.state = DeviceState.off,
+    required this.commandId,
     this.sceneActions = const [],
     this.triggers = const [],
   });
@@ -25,6 +27,7 @@ class Device {
     final String domain = data['domain'];
     final String icon = data['icon'];
     final String stateString = data['state'];
+    final String commandId = data['commandId'];
 
     DeviceState state;
     switch (stateString) {
@@ -44,6 +47,7 @@ class Device {
       domain: domain,
       icon: icon,
       state: state,
+      commandId: commandId,
     );
   }
 }
