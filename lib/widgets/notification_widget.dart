@@ -25,7 +25,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   // Method to fetch notifications and map them to Notification objects
   Future<List<EventNotification>> _getNotifications() async {
     final List<DocumentSnapshot<Object?>> documents = await _firestoreService
-        .getAllDocuments('notifications');
+        .getOrderedDocuments('notifications', orderBy: 'timestamp', descending: true);
     final List<EventNotification> notifications = documents.map((doc) =>
         EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>))
         .toList();
