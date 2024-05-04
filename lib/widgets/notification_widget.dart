@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
 import 'package:scmu_2024_smartconnect/firebase/database.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
 class NotificationWidget extends StatefulWidget {
+  const NotificationWidget({super.key});
+
   @override
   _NotificationWidgetState createState() => _NotificationWidgetState();
 }
@@ -21,11 +24,21 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   // Method to fetch notifications and map them to Notification objects
   Future<List<EventNotification>> _getNotifications() async {
-    final List<DocumentSnapshot<Object?>> documents = await _firestoreService.getAllDocuments('notifications');
-    final List<EventNotification> notifications = documents.map((doc) => EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>)).toList();
+    final List<DocumentSnapshot<Object?>> documents = await _firestoreService
+        .getAllDocuments('notifications');
+    final List<EventNotification> notifications = documents.map((doc) =>
+        EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>))
+        .toList();
     return notifications;
   }
 
+  // Method to delete a notification
+  Future<void> _deleteNotification(EventNotification notification) async {
+    _firestoreService.deleteDocumentsByFieldValue('notifications', "id", notification.id);
+    setState(() {
+      _notificationsFuture = _getNotifications();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +47,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         future: _notificationsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           } else if (snapshot.hasError) {
@@ -44,7 +57,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           } else {
             final List<EventNotification> notifications = snapshot.data!;
             if (notifications.isEmpty) {
-              return Center(
+              return const Center(
                 child: Text("No new notifications"),
               );
             } else {
@@ -52,9 +65,53 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                 itemCount: notifications.length,
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
-                  return ListTile(
-                    title: Text(notification.title),
-                    subtitle: Text(notification.description),
+                  IconData iconData;
+                  if (notification.observation == 'alert') {
+                    iconData = Icons.announcement;
+                  } else {
+                    iconData = Icons.notification_important;
+                  }
+
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 2.0, horizontal: 4.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: backgroundColorTertiary, // Change color as needed
+                    ),
+                    child: Stack(
+                      children: [
+                        ListTile(
+                          leading: Icon(iconData, color: backgroundColorSecondary),
+                          title: Text(
+                              "${notification.domain} - ${notification.title}"),
+                          subtitle: Text(notification.description),
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              _deleteNotification(notification);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(Icons.close, size: 32,color: backgroundColorSecondary),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 3,
+                          child: Text(
+                            _formatDateTime(notification.timestamp),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: backgroundColorSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
               );
@@ -64,4 +121,8 @@ class _NotificationWidgetState extends State<NotificationWidget> {
       ),
     );
   }
+}
+
+String _formatDateTime(DateTime dateTime) {
+  return "${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute}:${dateTime.second}";
 }

@@ -7,6 +7,8 @@ import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import 'package:scmu_2024_smartconnect/widgets/notification_widget.dart';
 
 class UserWidget extends StatefulWidget {
+  const UserWidget({super.key});
+
   @override
   _UserWidgetState createState() => _UserWidgetState();
 }

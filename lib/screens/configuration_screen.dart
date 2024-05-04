@@ -107,9 +107,9 @@ class ConfigurationScreen extends StatelessWidget {
     // Construct a Notification object
     EventNotification notification = EventNotification(
       id: (DateTime.now().second + DateTime.now().millisecond).toString(),
-      title: 'Title',
-      domain: 'Domain',
-      description: 'Description',
+      title: 'A system test',
+      domain: 'Application', //could be Kitchen/Living Room/Vacation House etc
+      description: 'This is the description, just for testing the notifications.',
       observation: 'Observation',
       timestamp: DateTime.now(),
     );

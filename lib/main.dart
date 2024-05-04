@@ -73,6 +73,16 @@ class _MainPageState extends State<MainPage> {
     const ConfigurationScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _auth.authStateChanges().listen((user) {
+      setState(() {
+        //updates UI on auth change
+      });
+    });
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -96,7 +106,7 @@ class _MainPageState extends State<MainPage> {
             onPressed: () async {
               await _auth.signOut();
             },
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
           ),
         ]
             : [],
