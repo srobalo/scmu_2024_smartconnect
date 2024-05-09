@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+const int devicePort = 11111;
+const int deviceSearchTimerSeconds = 7;
+//
 Color primaryColor = Colors.blue[900] as Color;
 Color backgroundColor = Colors.blueGrey[900] as Color;
 Color backgroundColorSecondary = Colors.blueGrey[800] as Color;

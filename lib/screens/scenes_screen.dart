@@ -15,7 +15,7 @@ class ScenesScreen extends StatelessWidget {
         future: _fetchScenesFromFirebase(), // Fetch scenes from Firebase
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
@@ -24,19 +24,35 @@ class ScenesScreen extends StatelessWidget {
               itemCount: scenes.length,
               itemBuilder: (context, index) {
                 final scene = scenes[index];
-                return ListTile(
-                  title: Text(scene.name),
-                  subtitle: Text('Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
-                  onTap: () {
-                    // Navigate to scene details screen
-                    // todo: Implement scene details screen
-                  },
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      // Delete scene
-                      // todo: Implement delete scene functionality
-                    },
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: backgroundColorTertiary, // Change color as needed
+                  ),
+                  child: Stack(
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.settings, color: backgroundColorSecondary),
+                        title: Text(scene.name),
+                        subtitle: Text('Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
+                        onTap: () {
+                          // Navigate to scene details screen
+                          // todo: Implement scene details screen
+                        },
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            // Delete scene
+                            // todo: Implement delete scene functionality
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -57,22 +73,22 @@ class ScenesScreen extends StatelessWidget {
             ),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
+}
 
-  Future<List<Scene>> _fetchScenesFromFirebase() async {
-    // Fetch scenes data from Firebase
-    final querySnapshot = await FirebaseFirestore.instance.collection('scenes').get();
-    final List<Scene> scenes = [];
-    for (final doc in querySnapshot.docs) {
-      // Parse Firebase document data into Scene objects
-      final scene = Scene.fromFirestore(doc);
-      scenes.add(scene);
-    }
-    return scenes;
+Future<List<Scene>> _fetchScenesFromFirebase() async {
+  // Fetch scenes data from Firebase
+  final querySnapshot = await FirebaseFirestore.instance.collection('scenes').get();
+  final List<Scene> scenes = [];
+  for (final doc in querySnapshot.docs) {
+    // Parse Firebase document data into Scene objects
+    final scene = Scene.fromFirestore(doc);
+    scenes.add(scene);
   }
+  return scenes;
 }
 
 Future<List<Device>> _fetchDevices() async {

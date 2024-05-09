@@ -107,6 +107,7 @@ class ConfigurationScreen extends StatelessWidget {
     // Construct a Notification object
     EventNotification notification = EventNotification(
       id: (DateTime.now().second + DateTime.now().millisecond).toString(),
+      userid: "to implement",
       title: 'A system test',
       domain: 'Application', //could be Kitchen/Living Room/Vacation House etc
       description: 'This is the description, just for testing the notifications.',
@@ -117,6 +118,7 @@ class ConfigurationScreen extends StatelessWidget {
     // Convert the Notification object to a map
     Map<String, dynamic> data = {
       'id': notification.id,
+      'userid': notification.userid,
       'title': notification.title,
       'domain': notification.domain,
       'description': notification.description,

@@ -19,11 +19,11 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   late TabController _tabController;
 
   List<Device> devices = [
-    Device(name: "Outside Lights", domain: "Garden", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "1"),
-    Device(name: "House Lights", domain: "Home", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "2"),
-    Device(name: "Backdoor", domain: "Home Door", icon: "assets/smart_lock.png", state: DeviceState.off, commandId: "3"),
-    Device(name: "Garage Door", domain: "Garage", icon: "assets/smart_garage.png", state: DeviceState.off, commandId: "4"),
-    Device(name: "House Humidity", domain: "Home Environment", icon: "assets/smart_sensor_humidity.png", state: DeviceState.off, commandId: "5"),
+    Device(userid:"notimplemented", name: "Outside Lights", domain: "Garden", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "1", ip: '172.20.10.13'),
+    Device(userid:"notimplemented", name: "House Lights", domain: "Home", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "2", ip: '172.20.10.13'),
+    Device(userid:"notimplemented", name: "Backdoor", domain: "Home Door", icon: "assets/smart_lock.png", state: DeviceState.off, commandId: "3", ip: '172.20.10.13'),
+    Device(userid:"notimplemented", name: "Garage Door", domain: "Garage", icon: "assets/smart_garage.png", state: DeviceState.off, commandId: "4", ip: '172.20.10.13'),
+    Device(userid:"notimplemented", name: "House Humidity", domain: "Home Environment", icon: "assets/smart_sensor_humidity.png", state: DeviceState.off, commandId: "5", ip: '172.20.10.13'),
   ]; //for testing
 
   @override
@@ -33,9 +33,9 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   }
 
 
-  void sendCommand(String deviceId, String commandAction) async {
+  void sendCommand(String deviceId, String commandAction,String deviceIp) async {
     try {
-      final url = Uri.parse('http://172.20.10.13/${deviceId}/${commandAction}');
+      final url = Uri.parse('http://${deviceIp}/${deviceId}/${commandAction}');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         print('Command sent successfully for $deviceId with action $commandAction');
@@ -136,7 +136,7 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
                         return;  // Prevent further action if commandId is null
                       }
                       String commandAction = (newState == DeviceState.on) ? "on" : "off";
-                      sendCommand(devices[index].commandId, commandAction);
+                      sendCommand(devices[index].commandId, commandAction, devices[index].ip);
                       print("Command sent for ${devices[index].name} with action $commandAction");
                     });
                   },
