@@ -5,6 +5,7 @@ import 'package:scmu_2024_smartconnect/objects/scene.dart';
 import 'package:scmu_2024_smartconnect/objects/trigger.dart';
 import 'package:scmu_2024_smartconnect/objects/scene_action.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 import '../defaults/default_values.dart';
 
 class ScenesScreen extends StatelessWidget {
@@ -40,15 +41,17 @@ class ScenesScreen extends StatelessWidget {
                           // Navigate to scene details screen
                           // todo: Implement scene details screen
                         },
-                      ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: IconButton(
-                          icon: const Icon(Icons.delete),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: backgroundColorSecondary),
                           onPressed: () {
-                            // Delete scene
-                            // todo: Implement delete scene functionality
+                            _deleteSceneFromFirebase(scene)
+                                .then((value) {
+                              NotificationToast.showToast(context, "Scene deleted successfully.");
+                              // Refresh
+                            })
+                                .onError((error, stackTrace) {
+                              NotificationToast.showToast(context, "Failed to delete scene.");
+                            });
                           },
                         ),
                       ),
@@ -89,6 +92,11 @@ Future<List<Scene>> _fetchScenesFromFirebase() async {
     scenes.add(scene);
   }
   return scenes;
+}
+
+Future<Set<void>> _deleteSceneFromFirebase(Scene scene) async {
+  //not implemented
+  return {Future.value()};
 }
 
 Future<List<Device>> _fetchDevices() async {

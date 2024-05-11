@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:wifi_iot/wifi_iot.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import '../defaults/default_values.dart';
 import '../utils/network_utility.dart';
@@ -17,6 +20,11 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   bool _isSearching = false;
   List<DeviceInfo> _deviceList = [];
   Timer? _searchTimer;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -171,8 +179,115 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   }
 
   void connectToDevice(String ipAddress) {
-    NotificationToast.showToast(context, "Not implemented yet.");
+    // Show a dialog to input SSID and password
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String ssid = '';
+        String password = '';
+
+        return AlertDialog(
+          title: const Text('Connect to Device'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'SSID'),
+                style: const TextStyle(color: Colors.black),
+                onChanged: (value) {
+                  ssid = value;
+                },
+              ),
+              TextField(
+                decoration: const InputDecoration(labelText: 'Password'),
+                style: const TextStyle(color: Colors.black),
+                onChanged: (value) {
+                  password = value;
+                },
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                // Send SSID and password to the device and connect
+                sendCredentialsAndConnect(ipAddress, ssid, password);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Connect'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> sendCredentialsAndConnect(String ipAddress, String ssid, String password) async {
+    // Print debug information
     print('Connecting to device at IP: $ipAddress');
+    print('SSID: $ssid');
+    print('Password: $password');
+
+    // Attempt to establish connection
+    int connectionResult = await _connectionProcess(ipAddress, ssid, password);
+
+// Show notification based on connection status
+    switch (connectionResult) {
+      case 1:
+        NotificationToast.showToast(context, "Connection successful!");
+        break;
+      case 2:
+        NotificationToast.showToast(context, "Connection failed. Status code: $connectionResult");
+        break;
+      case 3:
+        NotificationToast.showToast(context, "Error occurred while sending request.");
+        break;
+      default:
+        NotificationToast.showToast(context, "Please provide valid credentials.");
+    }
+  }
+}
+
+Future<int> _connectionProcess(String ipAddress, String ssid, String password) async {
+
+  if (ipAddress.isEmpty || ssid.isEmpty || password.isEmpty) {
+    return 0; // Return false if any parameter is empty
+  }
+
+  final Map<String, dynamic> payload = {
+    'ssid': ssid,
+    'password': password,
+  };
+
+  final url = Uri.parse('http://$ipAddress:$devicePort'); // Assuming the device expects requests at the root URL
+
+  try {
+    // Send the HTTP POST request with the JSON payload
+    final response = await http.post(
+      url,
+      body: payload,
+    );
+
+    // Check if the request was successful
+    if (response.statusCode == 200) {
+      // Request was successful
+      return 1;
+    } else {
+      // Request failed
+      print('Failed to send credentials. Status code: ${response.statusCode}');
+      return 2;
+    }
+  } catch (e) {
+    // An error occurred while sending the request
+    print('Error sending request: $e');
+    return 3;
   }
 }
 
