@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/screens/configuration_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/devices_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/metric_screen.dart';
@@ -104,7 +105,7 @@ class _MainPageState extends State<MainPage> {
             ? [
           IconButton(
             onPressed: () async {
-              await _auth.signOut();
+              await _auth.signOut().then((value) => FirebaseDB().logout());
             },
             icon: const Icon(Icons.logout),
           ),
@@ -117,7 +118,7 @@ class _MainPageState extends State<MainPage> {
           SizedBox(
             width: double.infinity,
             child: Image.asset(
-              'assets/smart_home_img.jpg',
+              'assets/smart_home_dynamic.jpg',
               fit: BoxFit.cover,
             ),
           ),

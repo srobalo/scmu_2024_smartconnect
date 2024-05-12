@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
-import 'package:scmu_2024_smartconnect/firebase/database.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
 class NotificationWidget extends StatefulWidget {
@@ -42,6 +42,28 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   @override
   Widget build(BuildContext context) {
+    var normal =
+    [
+      Colors.cyan.withOpacity(0.4),
+      Colors.cyan.withOpacity(0.0),
+      Colors.cyan.withOpacity(0.0),
+      Colors.cyan.withOpacity(0.0),
+      Colors.cyan.withOpacity(0.0),
+      Colors.cyan.withOpacity(0.0),
+      Colors.cyan.withOpacity(0.0),
+    ];
+
+    var alert =
+    [
+      Colors.redAccent.withOpacity(0.4),
+      Colors.redAccent.withOpacity(0.0),
+      Colors.redAccent.withOpacity(0.0),
+      Colors.redAccent.withOpacity(0.0),
+      Colors.redAccent.withOpacity(0.0),
+      Colors.redAccent.withOpacity(0.0),
+      Colors.redAccent.withOpacity(0.0),
+    ];
+
     return Scaffold(
       body: FutureBuilder<List<EventNotification>>(
         future: _notificationsFuture,
@@ -58,7 +80,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
             final List<EventNotification> notifications = snapshot.data!;
             if (notifications.isEmpty) {
               return const Center(
-                child: Text("No new notifications"),
+                child: Text("No new notifications",style: TextStyle(fontSize: 20.0)),
               );
             } else {
               return ListView.builder(
@@ -81,10 +103,22 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                     ),
                     child: Stack(
                       children: [
+                        Positioned.fill(
+                          left: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: normal,
+                              ),
+                            ),
+                          ),
+                        ),
                         ListTile(
                           leading: Icon(iconData, color: backgroundColorSecondary),
-                          title: Text(
-                              "${notification.domain} - ${notification.title}"),
+                          title: Text("${notification.domain} - ${notification.title}"),
                           subtitle: Text(notification.description),
                         ),
                         Positioned(
@@ -106,8 +140,8 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                           child: Text(
                             _formatDateTime(notification.timestamp),
                             style: TextStyle(
-                              fontSize: 12,
-                              color: backgroundColorSecondary),
+                                fontSize: 12,
+                                color: backgroundColorSecondary),
                           ),
                         ),
                       ],

@@ -17,6 +17,10 @@ class SceneConfigurationScreen extends StatefulWidget {
 
 class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
   List<Device> selectedDevices = [];
+  String sceneName = 'My Scene'; // Default scene name
+  List<Trigger> selectedTriggers = [];
+  List<SceneAction> selectedActions = [];
+  bool showNotification = false; // Default value for show notification checkbox
 
   @override
   Widget build(BuildContext context) {
@@ -24,43 +28,102 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
       appBar: AppBar(
         title: const Text('Create Scene'),
       ),
-      body: ListView.builder(
-        itemCount: widget.devices.length,
-        itemBuilder: (context, index) {
-          final device = widget.devices[index];
-          return ListTile(
-            title: Text(device.name),
-            onTap: () {
-              setState(() {
-                if (selectedDevices.contains(device)) {
-                  selectedDevices.remove(device);
-                } else {
-                  selectedDevices.add(device);
-                }
-              });
-            },
-            trailing: selectedDevices.contains(device) ? const Icon(Icons.check) : null,
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Create scene with selected devices
-          final scene = Scene(
-            name: 'New Scene',
-            triggers: selectedDevices.map((device) => Trigger(device: device, condition: 'Condition')).toList(),
-            actions: selectedDevices.map((device) => SceneAction(device: device, command: 'Command')).toList(),
-          );
-          // Save scene to database or perform other actions
-          // todo: Save scene to database
-          // Reset selected devices
-          setState(() {
-            selectedDevices.clear();
-          });
-          // Navigate back to previous screen
-          Navigator.pop(context);
-        },
-        child: const Icon(Icons.save),
+      body: Center(
+        child: Container(
+          padding: EdgeInsets.all(16.0),
+          margin: EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: backgroundColorTertiary,
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Scene Name'),
+                  initialValue: sceneName,
+                  onChanged: (value) {
+                    setState(() {
+                      sceneName = value;
+                    });
+                  },
+                ),
+                SizedBox(height: 16.0),
+                DropdownButtonFormField<Trigger>(
+                  hint: Text('Select Trigger(s)'),
+                  value: null,
+                  onChanged: (selectedTrigger) {
+                    setState(() {
+                      if (selectedTrigger != null) {
+                        selectedTriggers.add(selectedTrigger);
+                      }
+                    });
+                  },
+                  items: widget.devices.map((device) {
+                    return DropdownMenuItem<Trigger>(
+                      value: Trigger(device: device, condition: 'Condition'),
+                      child: Text(device.name),
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: 16.0),
+                DropdownButtonFormField<SceneAction>(
+                  hint: Text('Select Action(s)'),
+                  value: null,
+                  onChanged: (selectedAction) {
+                    setState(() {
+                      if (selectedAction != null) {
+                        selectedActions.add(selectedAction);
+                      }
+                    });
+                  },
+                  items: widget.devices.map((device) {
+                    return DropdownMenuItem<SceneAction>(
+                      value: SceneAction(device: device, command: 'Command'),
+                      child: Text(device.name),
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: 16.0),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: showNotification,
+                      onChanged: (value) {
+                        setState(() {
+                          showNotification = value!;
+                        });
+                      },
+                    ),
+                    Text('Show notification'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () {
+                    // Create scene with selected devices
+                    final scene = Scene(
+                      name: sceneName,
+                      triggers: selectedTriggers,
+                      actions: selectedActions,
+                    );
+                    // Save scene to database or perform other actions
+                    // todo: Save scene to database
+                    // Reset selected devices
+                    setState(() {
+                      selectedTriggers.clear();
+                      selectedActions.clear();
+                    });
+                    // Navigate back to previous screen
+                    Navigator.pop(context);
+                  },
+                  child: Text('Save Scene'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

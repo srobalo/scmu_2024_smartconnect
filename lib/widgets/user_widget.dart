@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
 import 'package:scmu_2024_smartconnect/generic_listener.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
@@ -56,7 +57,7 @@ class AuthenticatedUserWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String?>(
-      future: getUserEmail(),
+      future: getUser(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
@@ -82,7 +83,7 @@ class AuthenticatedUserWidget extends StatelessWidget {
                 color: Color.fromRGBO(0, 0, 0, 0.1),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 2, bottom: 2),
+                padding: const EdgeInsets.only(top: 2, bottom: 2),
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.transparent),
@@ -90,14 +91,34 @@ class AuthenticatedUserWidget extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircleAvatar(
-                        radius: 30,
+                      const CircleAvatar(
+                        radius: 20,
                         backgroundImage: AssetImage("assets/user.png"),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
                         email ?? 'User',
-                        style: TextStyle(fontSize: 20),
+                        style: TextStyle(
+                          fontSize: 20,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(-2, -2),
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                            Shadow(
+                              offset: const Offset(2, -2),
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                            Shadow(
+                              offset: const Offset(2, 2),
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                            Shadow(
+                              offset: const Offset(-2, 2),
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -130,10 +151,7 @@ class AuthenticatedUserWidget extends StatelessWidget {
     );
   }
 
-  Future<String?> getUserEmail() async {
-    // Implement your logic to fetch user email here
-    // For example, you can use Firebase Auth to get the current user's email
-    // Assuming user.email returns the email of the current authenticated user
+  Future<String?> getUser() async {
     return user.email;
   }
 }

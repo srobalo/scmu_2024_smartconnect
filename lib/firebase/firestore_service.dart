@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:scmu_2024_smartconnect/objects/user.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late TheUser? loggedUser;
 
   // Retrieve ordered documents from a collection
   Future<List<DocumentSnapshot>> getOrderedDocuments(String collectionName, {required String orderBy, bool descending = false}) async {
@@ -113,6 +115,142 @@ class FirestoreService {
       print("Document added successfully");
     } catch (e) {
       print("Error sending document: $e");
+    }
+  }
+
+  // Retrieve all documents where a specific field contains a certain value
+  Future<List<QueryDocumentSnapshot>> getAllDocumentsByFieldValue(String collectionName, String fieldName, dynamic value) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection(collectionName).where(fieldName, isEqualTo: value).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllDocumentsFromUserByFieldValue(String collectionName, String userid, String fieldName, dynamic value) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection(collectionName).where(fieldName, isEqualTo: userid).where(fieldName, isEqualTo: value).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllActionsFromUser(String userid) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("actions").where("userid", isEqualTo: userid).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllCustomNotificationsFromUser(String userid) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("customnotifications").where("userid", isEqualTo: userid).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllDevicesFromUser(String userid) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("devices").where("userid", isEqualTo: userid).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllNotificationsFromUser(String userid) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("notifications").where("userid", isEqualTo: userid).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllScenesFromUser(String userid) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("scenes").where("userid", isEqualTo: userid).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllTriggersFromUser(String userid) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("triggers").where("userid", isEqualTo: userid).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<DocumentSnapshot?> getUserFromId(String userid) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("users").where("id", isEqualTo: userid).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error retrieving document: $e");
+      return null;
+    }
+  }
+
+  Future<DocumentSnapshot?> getUserFromEmail(String email) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("users").where("email", isEqualTo: email).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error retrieving document: $e");
+      return null;
+    }
+  }
+
+  Future<String?> createUserIfNotExists(TheUser user) async {
+    try {
+      // Check if email already exists
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("users").where("email", isEqualTo: user.email).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return null;
+      }
+
+      // Convert the user object to a map
+      Map<String, dynamic> userData = {
+        'email': user.email,
+        'firstname': user.firstname,
+        'lastname': user.lastname,
+        'username': user.username,
+        'imgurl': "",
+        'timestamp': user.timestamp.toIso8601String(),
+      };
+
+      DocumentReference documentReference = await FirebaseFirestore.instance.collection("users").add(userData);
+      await documentReference.update({'id': documentReference.id});
+      return documentReference.id;
+    } catch (e) {
+      print("Error creating user document: $e");
+      return null;
     }
   }
 }

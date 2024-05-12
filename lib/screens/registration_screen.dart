@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
+import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
+
+import '../objects/user.dart';
 
 class RegistrationScreen extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
   TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _registerAccount(BuildContext context) async {
@@ -13,45 +20,60 @@ class RegistrationScreen extends StatelessWidget {
       final String email = _emailController.text.trim();
       final String password = _passwordController.text;
       final String confirmPassword = _confirmPasswordController.text;
+      final String username = _usernameController.text.trim();
+      final String firstName = _firstNameController.text.trim();
+      final String lastName = _lastNameController.text.trim();
 
-      if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-        // Handle empty email, password, or confirm password
+      if (email.isEmpty ||
+          password.isEmpty ||
+          confirmPassword.isEmpty ||
+          username.isEmpty ||
+          firstName.isEmpty ||
+          lastName.isEmpty) {
+        NotificationToast.showToast(context, "Failed to create account: Empty fields");
+        return;
+      }
+
+      if (password.length < 6 || confirmPassword.length < 6){
+        NotificationToast.showToast(context, "Password need minimum of 6 characters.");
         return;
       }
 
       if (password != confirmPassword) {
-        // Handle password mismatch
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text('Passwords do not match.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
+        NotificationToast.showToast(context, "Passwords do not match.");
         return;
       }
 
-      final currentRoute = ModalRoute.of(context)?.settings.name;
+      NotificationToast.showToast(context, "Your account is being created!");
 
-      await _auth.createUserWithEmailAndPassword(
+      // Create user with email and password
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
-      )
-          .then((value) => {
-            print('Current route: $currentRoute'),
-            Navigator.pop(context)
-          });
+      );
+
+      // After user is created, send user data to another database
+      if (userCredential.user != null) {
+        NotificationToast.showToast(context, "Welcome, $firstName $lastName!");
+        FirebaseDB f = FirebaseDB();
+        await f.createUser(TheUser(
+          id: '',
+          email: email,
+          firstname: firstName,
+          lastname: lastName,
+          username: username,
+          imgurl: '',
+          timestamp: DateTime.now(),
+        ));
+      }
+
+      // Navigate back to previous screen
+      Navigator.pop(context);
     } catch (error) {
-      // Handle account creation errors
-      print('Error creating account: $error');
+      String errorMessage = error.toString();
+      errorMessage = errorMessage.replaceAllMapped(RegExp(r'\[firebase_auth/.*?\]'), (match) => '');
+      NotificationToast.showToast(context, "$errorMessage");
+      print('Error creating account: $errorMessage');
     }
   }
 
@@ -59,46 +81,73 @@ class RegistrationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Account'),
+        title: const Text('Create Account'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                labelStyle: TextStyle(color: Colors.blueGrey),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
+                controller: _firstNameController,
+                decoration: const InputDecoration(
+                  labelText: 'First Name',
+                  labelStyle: TextStyle(color: Colors.blueGrey),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: TextStyle(color: Colors.blueGrey),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _lastNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Last Name',
+                  labelStyle: TextStyle(color: Colors.blueGrey),
+                ),
               ),
-              obscureText: true,
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Confirm Password',
-                labelStyle: TextStyle(color: Colors.blueGrey),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  labelStyle: TextStyle(color: Colors.blueGrey),
+                ),
               ),
-              obscureText: true,
-            ),
-            SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () => _registerAccount(context),
-              child: Text('Register'),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Colors.blueGrey),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  labelStyle: TextStyle(color: Colors.blueGrey),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                  labelStyle: TextStyle(color: Colors.blueGrey),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () => _registerAccount(context),
+                child: const Text('Register'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/screens/registration_screen.dart';
 
+import '../objects/user.dart';
 import '../utils/my_preferences.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -22,6 +24,17 @@ class LoginScreen extends StatelessWidget {
         MyPreferences.saveData<String>("USER_EMAIL", email),
         Navigator.pop(context),
       });
+
+      FirebaseDB().getUserFromEmail(email).then((value) {
+      if (value != null) {
+        TheUser u = TheUser.fromFirestoreDoc(value);
+        FirebaseDB().login(u);
+      } else {
+        // Handle the case where value is null
+        print('Document not found for email: $email');
+        }
+      });
+
     } catch (error) {
       // Handle login errors
       showDialog(

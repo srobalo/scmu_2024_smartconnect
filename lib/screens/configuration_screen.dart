@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -6,7 +8,7 @@ import '../objects/device.dart';
 import '../utils/excuses.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
 import 'package:scmu_2024_smartconnect/utils/wifi_info.dart';
-import 'package:scmu_2024_smartconnect/firebase/database.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
 class ConfigurationScreen extends StatelessWidget {
@@ -51,9 +53,15 @@ class ConfigurationScreen extends StatelessWidget {
                         ),
                         ElevatedButton(
                           onPressed: () async {
+                            await _delayedNotification();
+                          },
+                          child: const Text('Test Delayed Notification'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
                             await _requestDatabaseTest();
                           },
-                          child: const Text('Test Database'),
+                          child: const Text('Test Notification Database'),
                         ),
                       ],
                     ),
@@ -93,6 +101,18 @@ class ConfigurationScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _delayedNotification() async {
+    final NotificationManager notificationManager = NotificationManager();
+    Timer(const Duration(seconds: 10), () async {
+      late String excuse = generateExcuse();
+      await notificationManager.showNotification(
+        id: DateTime.now().second + DateTime.now().millisecond,
+        title: 'Notification Test',
+        body: excuse,
+      );
+    });
+  }
+
   Future<void> _requestNotificationTest() async {
     final NotificationManager notificationManager = NotificationManager();
     late String excuse = generateExcuse();
@@ -127,6 +147,6 @@ class ConfigurationScreen extends StatelessWidget {
     };
 
     // Send the notification data to Firebase
-    Firebase().sendNotification(data);
+    FirebaseDB().sendNotification(data);
   }
 }

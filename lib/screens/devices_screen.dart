@@ -108,7 +108,14 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   Widget _buildDevicesTab() {
     return Stack(
       children: [
-        ListView.builder(
+        devices.isEmpty
+            ? const Center(
+          child: Text(
+            'No devices connected',
+            style: TextStyle(fontSize: 20.0),
+          ),
+        )
+            : ListView.builder(
           itemCount: devices.length,
           itemBuilder: (context, index) {
             return ListTile(

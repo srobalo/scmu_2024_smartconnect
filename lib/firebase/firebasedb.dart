@@ -1,8 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../objects/user.dart';
 import 'firestore_service.dart';
 
-class Firebase {
+class FirebaseDB {
   final FirestoreService _firestoreService = FirestoreService();
+
+  TheUser login(TheUser u){
+    _firestoreService.loggedUser = u;
+    return u;
+  }
+
+  TheUser? logout(){
+    _firestoreService.loggedUser = null;
+    return null;
+  }
 
   Future<void> deleteDevicesByFieldValue(String fieldName, dynamic value) async {
     await _firestoreService.deleteDocumentsByFieldValue("devices", fieldName, value);
@@ -74,6 +85,46 @@ class Firebase {
 
   Future<void> sendNotification(Map<String, dynamic> data) async {
     await _firestoreService.sendDocument("notifications", data);
+  }
+
+  Future<List<DocumentSnapshot>> getAllDocumentsFromUser(String userid,String fieldName, dynamic value) async {
+    return await _firestoreService.getAllDocumentsFromUserByFieldValue("notifications",userid,fieldName,value);
+  }
+
+  Future<List<DocumentSnapshot>> getAllActionsFromUser(String userid) async {
+    return await _firestoreService.getAllActionsFromUser(userid);
+  }
+
+  Future<List<DocumentSnapshot>> getAllCustomNotificationsFromUser(String userid) async {
+    return await _firestoreService.getAllCustomNotificationsFromUser(userid);
+  }
+
+  Future<List<DocumentSnapshot>> getAllDevicesFromUser(String userid) async {
+    return await _firestoreService.getAllDevicesFromUser(userid);
+  }
+
+  Future<List<DocumentSnapshot>> getAllNotificationsFromUser(String userid) async {
+    return await _firestoreService.getAllNotificationsFromUser(userid);
+  }
+
+  Future<List<DocumentSnapshot>> getAllScenesFromUser(String userid) async {
+    return await _firestoreService.getAllScenesFromUser(userid);
+  }
+
+  Future<List<DocumentSnapshot>> getAllTriggersFromUser(String userid) async {
+    return await _firestoreService.getAllTriggersFromUser(userid);
+  }
+
+  Future<DocumentSnapshot?> getUserFromId(String userid) async {
+    return await _firestoreService.getUserFromId(userid);
+  }
+
+  Future<DocumentSnapshot?> getUserFromEmail(String email) async {
+    return await _firestoreService.getUserFromEmail(email);
+  }
+
+  Future<String?> createUser(TheUser user) async {
+    return await _firestoreService.createUserIfNotExists(user);
   }
 
 }
