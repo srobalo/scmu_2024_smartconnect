@@ -5,16 +5,6 @@ import 'firestore_service.dart';
 class FirebaseDB {
   final FirestoreService _firestoreService = FirestoreService();
 
-  TheUser login(TheUser u){
-    _firestoreService.loggedUser = u;
-    return u;
-  }
-
-  TheUser? logout(){
-    _firestoreService.loggedUser = null;
-    return null;
-  }
-
   Future<void> deleteDevicesByFieldValue(String fieldName, dynamic value) async {
     await _firestoreService.deleteDocumentsByFieldValue("devices", fieldName, value);
   }

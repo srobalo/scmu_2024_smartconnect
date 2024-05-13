@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import '../objects/device.dart';
 import '../utils/excuses.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
@@ -124,10 +125,10 @@ class ConfigurationScreen extends StatelessWidget {
   }
 
   Future<void> _requestDatabaseTest() async {
-    // Construct a Notification object
+    String? userid = await MyPreferences.loadData<String>("USER_ID");
     EventNotification notification = EventNotification(
       id: (DateTime.now().second + DateTime.now().millisecond).toString(),
-      userid: "to implement",
+      userid: userid!,
       title: 'A system test',
       domain: 'Application', //could be Kitchen/Living Room/Vacation House etc
       description: 'This is the description, just for testing the notifications.',

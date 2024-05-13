@@ -37,4 +37,25 @@ class CustomNotification {
       timestamp: timestamp,
     );
   }
+
+  factory CustomNotification.fromFirestoreDoc(DocumentSnapshot<Object?> doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final String userid = data['userid'];
+    final String title = data['title'];
+    final String observation = data['observation'];
+    final String domain = data['domain'];
+    final String description = data['description'];
+    final String timestampString = data['timestamp'];
+
+    final DateTime timestamp = DateTime.parse(timestampString);
+
+    return CustomNotification(
+      userid: userid,
+      title: title,
+      observation: observation,
+      domain: domain,
+      description: description,
+      timestamp: timestamp,
+    );
+  }
 }

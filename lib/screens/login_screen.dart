@@ -28,7 +28,8 @@ class LoginScreen extends StatelessWidget {
       FirebaseDB().getUserFromEmail(email).then((value) {
       if (value != null) {
         TheUser u = TheUser.fromFirestoreDoc(value);
-        FirebaseDB().login(u);
+        MyPreferences.saveData<String>("USER_ID", u.id);
+        print("User logged in, id:${u.id}");
       } else {
         // Handle the case where value is null
         print('Document not found for email: $email');

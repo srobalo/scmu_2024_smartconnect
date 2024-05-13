@@ -5,6 +5,7 @@ enum DataType { String, Int, Double, Bool }
 
 class MyPreferences {
   static Future<void> saveData<T>(String key, T value) async {
+    print("Preferences: Saving KeyValue");
     final prefs = await SharedPreferences.getInstance();
     final dataType = T == String
         ? DataType.String
@@ -33,6 +34,7 @@ class MyPreferences {
   }
 
   static Future<T?> loadData<T>(String key) async {
+    print("Preferences: Loading Key $key");
     final prefs = await SharedPreferences.getInstance();
     final dataType = T == String
         ? DataType.String
@@ -59,6 +61,13 @@ class MyPreferences {
   static Future<void> clearAllPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+    print("Cleared all preferences");
+  }
+
+  static Future<void> clearData(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(key);
+    print("Removed value of key $key from preferences");
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
 import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
+import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 
 class NotificationWidget extends StatefulWidget {
   const NotificationWidget({super.key});
@@ -19,13 +20,24 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   @override
   void initState() {
     super.initState();
-    _notificationsFuture = _getNotifications();
+    _notificationsFuture = _getUserNotifications();
   }
 
   // Method to fetch notifications and map them to Notification objects
   Future<List<EventNotification>> _getNotifications() async {
     final List<DocumentSnapshot<Object?>> documents = await _firestoreService
         .getOrderedDocuments('notifications', orderBy: 'timestamp', descending: true);
+    final List<EventNotification> notifications = documents.map((doc) =>
+        EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>))
+        .toList();
+    return notifications;
+  }
+
+  // Method to fetch notifications and map them to Notification objects
+  Future<List<EventNotification>> _getUserNotifications() async {
+    final id = await MyPreferences.loadData<String>("USER_ID");
+    final List<DocumentSnapshot<Object?>> documents = await _firestoreService
+        .getOrderedDocumentsFromUser('notifications', id!,orderBy: 'timestamp', descending: true);
     final List<EventNotification> notifications = documents.map((doc) =>
         EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>))
         .toList();

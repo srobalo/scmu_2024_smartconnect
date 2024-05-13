@@ -105,7 +105,9 @@ class _MainPageState extends State<MainPage> {
             ? [
           IconButton(
             onPressed: () async {
-              await _auth.signOut().then((value) => FirebaseDB().logout());
+              await _auth.signOut().then((value) => {
+                MyPreferences.clearData("USER_ID"),
+              });
             },
             icon: const Icon(Icons.logout),
           ),

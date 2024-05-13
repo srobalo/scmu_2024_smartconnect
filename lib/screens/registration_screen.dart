@@ -4,6 +4,7 @@ import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 
 import '../objects/user.dart';
+import '../utils/my_preferences.dart';
 
 class RegistrationScreen extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
@@ -66,6 +67,17 @@ class RegistrationScreen extends StatelessWidget {
           timestamp: DateTime.now(),
         ));
       }
+
+      FirebaseDB().getUserFromEmail(email).then((value) {
+        if (value != null) {
+          TheUser u = TheUser.fromFirestoreDoc(value);
+          MyPreferences.saveData<String>("USER_ID", u.id);
+          print("User logged in, id:${u.id}");
+        } else {
+          // Handle the case where value is null
+          print('Document not found for email: $email');
+        }
+      });
 
       // Navigate back to previous screen
       Navigator.pop(context);

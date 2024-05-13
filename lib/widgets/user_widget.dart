@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,7 @@ import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
 import 'package:scmu_2024_smartconnect/generic_listener.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import 'package:scmu_2024_smartconnect/widgets/notification_widget.dart';
+import '../objects/user.dart';
 
 class UserWidget extends StatefulWidget {
   @override
@@ -60,7 +62,7 @@ class AuthenticatedUserWidget extends StatelessWidget {
       future: getUser(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         } else {
           String? email = snapshot.data;
           return Column(
@@ -97,7 +99,7 @@ class AuthenticatedUserWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        email ?? 'User',
+                        email ?? 'Welcome',
                         style: TextStyle(
                           fontSize: 20,
                           shadows: [

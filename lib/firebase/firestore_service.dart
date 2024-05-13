@@ -3,12 +3,23 @@ import 'package:scmu_2024_smartconnect/objects/user.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  late TheUser? loggedUser;
 
   // Retrieve ordered documents from a collection
   Future<List<DocumentSnapshot>> getOrderedDocuments(String collectionName, {required String orderBy, bool descending = false}) async {
     try {
       Query query = _firestore.collection(collectionName).orderBy(orderBy, descending: descending);
+      QuerySnapshot querySnapshot = await query.get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving ordered documents: $e");
+      return [];
+    }
+  }
+
+  // Retrieve ordered documents from a collection
+  Future<List<DocumentSnapshot>> getOrderedDocumentsFromUser(String collectionName, String userid,{required String orderBy, bool descending = false}) async {
+    try {
+      Query query = _firestore.collection(collectionName).where("userid", isEqualTo: userid).orderBy(orderBy, descending: descending);
       QuerySnapshot querySnapshot = await query.get();
       return querySnapshot.docs;
     } catch (e) {

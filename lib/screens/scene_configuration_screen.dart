@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/objects/trigger.dart';
 import 'package:scmu_2024_smartconnect/objects/scene_action.dart';
 import 'package:scmu_2024_smartconnect/objects/scene.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import '../defaults/default_values.dart';
+import '../objects/custom_notification.dart';
 import '../objects/scene_action.dart';
+import '../objects/user.dart';
 
 class SceneConfigurationScreen extends StatefulWidget {
   final List<Device> devices;
@@ -21,6 +26,27 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
   List<Trigger> selectedTriggers = [];
   List<SceneAction> selectedActions = [];
   bool showNotification = false; // Default value for show notification checkbox
+  List<CustomNotification> customNotifications = []; // List to hold custom notifications
+
+  @override
+  void initState() {
+    super.initState();
+    // Load custom notifications from Firestore
+    loadCustomNotifications();
+  }
+
+  void loadCustomNotifications() async {
+    final id = await MyPreferences.loadData<String>("USER_ID");
+    if (id != "") {
+      final customNotificationsSnapshot = await FirebaseDB().getAllCustomNotificationsFromUser(id!);
+      print(id);
+      setState(() {
+        // Map Firestore documents to CustomNotification objects
+        customNotifications = customNotificationsSnapshot.map((doc) =>
+            CustomNotification.fromFirestoreDoc(doc)).toList();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,17 +67,33 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Scene Name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Scene Name',
+                    labelStyle: TextStyle(color: Colors.black), // Set label text color to black
+                  ),
                   initialValue: sceneName,
                   onChanged: (value) {
                     setState(() {
                       sceneName = value;
                     });
                   },
+                  style: const TextStyle(
+                    color: Colors.black,
+                  ),
+                  onTap: () {
+                    setState(() {
+                      sceneName = sceneName;
+                    });
+                  },
+                  onEditingComplete: () {
+                    setState(() {
+                      sceneName = sceneName;
+                    });
+                  },
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 DropdownButtonFormField<Trigger>(
-                  hint: Text('Select Trigger(s)'),
+                  hint: const Text('Select Trigger(s)'),
                   value: null,
                   onChanged: (selectedTrigger) {
                     setState(() {
@@ -60,16 +102,21 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                       }
                     });
                   },
-                  items: widget.devices.map((device) {
+                  items: widget.devices.isNotEmpty ? widget.devices.map((device) {
                     return DropdownMenuItem<Trigger>(
-                      value: Trigger(device: device, condition: 'Condition'),
+                      value: Trigger(device: device, condition: 'Condition'), // Ensure each value is unique
                       child: Text(device.name),
                     );
-                  }).toList(),
+                  }).toList() : [
+                    const DropdownMenuItem<Trigger>(
+                      value: null,
+                      child: Text('No triggers available'),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 DropdownButtonFormField<SceneAction>(
-                  hint: Text('Select Action(s)'),
+                  hint: const Text('Select Action(s)'),
                   value: null,
                   onChanged: (selectedAction) {
                     setState(() {
@@ -78,14 +125,19 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                       }
                     });
                   },
-                  items: widget.devices.map((device) {
+                  items: widget.devices.isNotEmpty ? widget.devices.map((device) {
                     return DropdownMenuItem<SceneAction>(
-                      value: SceneAction(device: device, command: 'Command'),
+                      value: SceneAction(device: device, command: 'Command'), // Ensure each value is unique
                       child: Text(device.name),
                     );
-                  }).toList(),
+                  }).toList() : [
+                    const DropdownMenuItem<SceneAction>(
+                      value: null,
+                      child: Text('No actions available'),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 Row(
                   children: [
                     Checkbox(
@@ -96,10 +148,49 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                         });
                       },
                     ),
-                    Text('Show notification'),
+                    Text(
+                      'Show notification',
+                      style: TextStyle(
+                        color: backgroundColorSecondary, // Change the color here
+                      ),
+                    ),
                   ],
                 ),
-                SizedBox(height: 16.0),
+                // Display custom notifications when the checkbox is checked
+                if (showNotification)
+                  Column(
+                    children: [
+                      DropdownButtonFormField<CustomNotification>(
+                        hint: const Text('Select Custom Notification'),
+                        value: null,
+                        onChanged: (selectedNotification) {
+                          // Handle selection
+                        },
+                        items: customNotifications.isNotEmpty
+                            ? customNotifications.map((notification) {
+                          return DropdownMenuItem<CustomNotification>(
+                            value: notification,
+                            child: Text(notification.title),
+                          );
+                        }).toList()
+                            : [
+                          const DropdownMenuItem<CustomNotification>(
+                            value: null,
+                            child: Text('No custom notifications available'),
+                          ),
+                        ],
+                      ),
+                      // Add option to create a new custom notification
+                      ElevatedButton(
+                        onPressed: () {
+                          // Navigate to a screen to create a new custom notification
+                          // You need to implement this screen
+                        },
+                        child: const Text('Create New Custom Notification'),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () {
                     // Create scene with selected devices
@@ -108,6 +199,9 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                       triggers: selectedTriggers,
                       actions: selectedActions,
                     );
+                    
+                    _saveSceneConfiguration();
+                    
                     // Save scene to database or perform other actions
                     // todo: Save scene to database
                     // Reset selected devices
@@ -118,7 +212,7 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                     // Navigate back to previous screen
                     Navigator.pop(context);
                   },
-                  child: Text('Save Scene'),
+                  child: const Text('Save Scene'),
                 ),
               ],
             ),
@@ -127,4 +221,7 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
       ),
     );
   }
+}
+
+class _saveSceneConfiguration {
 }
