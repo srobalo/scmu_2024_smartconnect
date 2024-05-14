@@ -1,62 +1,70 @@
 
 #include <ESP32Firebase.h>
-
-#include <WiFi.h>
+#include <WIFIManager.h>
+/* #include <WiFi.h> */
 //#include <Servo.h>
 
 
-const char* ssid     = "Andre";
-const char* password = "olaadeus123";
+/* const char* ssid = "Andre";
+const char* password = "olaadeus123"; */
 const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app";
 //const char* firebaseAuth  = "QbSDiFbhpZLFahaXUakYKmF2KCtD9DvZgpCutLw8";
 
 Firebase firebase(firebaseHost);
 
-WiFiServer server(80);
+/* WiFiServer server(80); */
 int ledPin = 21;
 int photoResistorPin = 34;
 static const int servoPin = 13;
 //Servo servo1;
-void setup()
-{
-    Serial.begin(9600);
-    pinMode(ledPin, OUTPUT);      // set the LED pin mode
-    pinMode(photoResistorPin, INPUT);
-    //servo1.attach(servoPin);
-    delay(10);
+void setup() {
+  Serial.begin(9600);
+  pinMode(ledPin, OUTPUT);  // set the LED pin mode
+  pinMode(photoResistorPin, INPUT);
+  //servo1.attach(servoPin);
+  delay(10);
 
-    // We start by connecting to a WiFi network
+  // We start by connecting to a WiFi network
 
-    Serial.println();
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
+  /*  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid); */
+  /* 
+  WiFi.begin(ssid, password); */
 
-    WiFi.begin(ssid, password);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
+  WiFiManager wm;
+  wm.resetSettings();
 
-    Serial.println("");
-    Serial.println("WiFi connected.");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+  if (!wm.autoConnect("SHASM", "password")) {
+    Serial.println("Failed to connect");
+    ESP.restart();
+    delay(1000);
+  }
 
-     /** FiREBASE */
-    firebase.setString("Example/setString", "It's Working");
-    firebase.setInt("Example/setInt", 123);
-    firebase.setFloat("Example/setFloat", 45.32);
-    
-    server.begin();
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
 
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  /** FiREBASE */
+  firebase.setString("Example/setString", "It's Working");
+  firebase.setInt("Example/setInt", 123);
+  firebase.setFloat("Example/setFloat", 45.32);
+
+  server.begin();
 }
 
-void loop(){
+void loop() {
 
- WiFiClient client = server.available();   // listen for incoming clients
- int lightLevel = analogRead(photoResistorPin);
+  WiFiClient client = server.available();  // listen for incoming clients
+  int lightLevel = analogRead(photoResistorPin);
   // Send the light level to Firebase
   if (!firebase.setInt("sensorData/photoResistor", lightLevel)) {
     Serial.println("Failed to write photoresistor value to Firebase");
@@ -64,14 +72,14 @@ void loop(){
     Serial.print("Photoresistor level sent to Firebase: ");
     Serial.println(lightLevel);
   }
-  if (client) {                             // if you get a client,
-    Serial.println("New Client.");           // print a message out the serial port
-    String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected()) {            // loop while the client's connected
-      if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
-        Serial.write(c);                    // print it out the serial monitor
-        if (c == '\n') {                    // if the byte is a newline character
+  if (client) {                     // if you get a client,
+    Serial.println("New Client.");  // print a message out the serial port
+    String currentLine = "";        // make a String to hold incoming data from the client
+    while (client.connected()) {    // loop while the client's connected
+      if (client.available()) {     // if there's bytes to read from the client,
+        char c = client.read();     // read a byte, then
+        Serial.write(c);            // print it out the serial monitor
+        if (c == '\n') {            // if the byte is a newline character
 
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
@@ -90,7 +98,7 @@ void loop(){
             client.println();
             // break out of the while loop:
             break;
-          } else {    // if you got a newline, then clear currentLine:
+          } else {  // if you got a newline, then clear currentLine:
             if (currentLine.startsWith("GET /3/on")) {
               Serial.println("Turning Backdoor ON (Mover o servo)");
               // Add code to perform the action
