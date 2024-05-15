@@ -48,7 +48,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   Future<void> _deleteNotification(EventNotification notification) async {
     await _firestoreService.deleteDocumentsByFieldValue('notifications', "id", notification.id);
     setState(() {
-      _notificationsFuture = _getNotifications();
+      _notificationsFuture = _getUserNotifications();
     });
   }
 

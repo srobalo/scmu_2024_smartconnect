@@ -240,13 +240,11 @@ class FirestoreService {
 
   Future<String?> createUserIfNotExists(TheUser user) async {
     try {
-      // Check if email already exists
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("users").where("email", isEqualTo: user.email).get();
       if (querySnapshot.docs.isNotEmpty) {
         return null;
       }
 
-      // Convert the user object to a map
       Map<String, dynamic> userData = {
         'email': user.email,
         'firstname': user.firstname,
