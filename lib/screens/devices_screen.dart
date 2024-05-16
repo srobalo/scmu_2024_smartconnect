@@ -30,6 +30,8 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Print all device names and their state
+
   }
 
 
@@ -99,7 +101,7 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
         controller: _tabController,
         children: [
           _buildDevicesTab(),
-          ScenesScreen(),
+          ScenesScreen(devices: devices),
         ],
       ),
     );

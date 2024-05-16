@@ -3,6 +3,7 @@ import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/objects/trigger.dart';
 import 'package:scmu_2024_smartconnect/objects/scene_action.dart';
+import 'package:scmu_2024_smartconnect/objects/sensor.dart';
 import 'package:scmu_2024_smartconnect/objects/scene.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
@@ -20,7 +21,9 @@ class SceneConfigurationScreen extends StatefulWidget {
   _SceneConfigurationScreenState createState() => _SceneConfigurationScreenState();
 }
 
+
 class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
+  List<Sensor> sensors = [];
   List<Device> selectedDevices = [];
   String sceneName = 'My Scene'; // Default scene name
   List<Trigger> selectedTriggers = [];
@@ -28,11 +31,33 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
   bool showNotification = false; // Default value for show notification checkbox
   List<CustomNotification> customNotifications = []; // List to hold custom notifications
 
+
   @override
   void initState() {
+
+
     super.initState();
     // Load custom notifications from Firestore
+    fetchSensorsFromFirestore();
     loadCustomNotifications();
+  }
+  Future<void> fetchSensorsFromFirestore() async {
+    print("procurando");
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    QuerySnapshot<Map<String, dynamic>> snapshot = await db.collection('sensors').get();
+
+    List<Sensor> fetchedSensors = snapshot.docs.map((doc) {
+      return Sensor.fromFirestore(doc);
+    }).toList();
+
+    setState(() {
+      sensors = fetchedSensors;
+    });
+
+    // Optional: Log fetched data for verification
+    for (Sensor sensor in sensors) {
+      print(sensor);
+    }
   }
 
   void loadCustomNotifications() async {
@@ -102,10 +127,18 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                       }
                     });
                   },
-                  items: widget.devices.isNotEmpty ? widget.devices.map((device) {
+                  items: sensors.isNotEmpty ? sensors.map((sensor) {
                     return DropdownMenuItem<Trigger>(
-                      value: Trigger(device: device, condition: 'Condition'), // Ensure each value is unique
-                      child: Text(device.name),
+                      value: Trigger(device: Device(
+                          userid: "fromSensor",
+                          name: sensor.name,
+                          domain: sensor.type,
+                          icon: "assets/sensor_icon.png",
+                          state: DeviceState.off,
+                          commandId: "sensor",
+                          ip: '192.168.1.x'
+                      ), condition: sensor.location), // Ensure each value is unique
+                      child: Text("${sensor.name} (${sensor.location})"),
                     );
                   }).toList() : [
                     const DropdownMenuItem<Trigger>(

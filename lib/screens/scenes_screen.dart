@@ -9,8 +9,13 @@ import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 import '../defaults/default_values.dart';
 
 class ScenesScreen extends StatelessWidget {
+  final List<Device> devices;
+
+  const ScenesScreen({Key? key, required this.devices}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: FutureBuilder<List<Scene>>(
         future: _fetchScenesFromFirebase(), // Fetch scenes from Firebase
@@ -64,11 +69,8 @@ class ScenesScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // Fetch devices from Firebase
-          final devices = await _fetchDevices();
-
-          // Navigate to the SceneConfigurationScreen and pass the fetched devices
+        onPressed: () {
+          // Directly use the already available 'devices' passed into this screen
           Navigator.push(
             context,
             MaterialPageRoute(
