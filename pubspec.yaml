@@ -48,6 +48,7 @@ dependencies:
   http: ^0.13.3
   wifi_iot: ^0.3.19
   workmanager: ^0.5.2
+  wifi_scan: ^0.4.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
