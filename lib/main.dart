@@ -67,12 +67,7 @@ class _MainPageState extends State<MainPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   int _selectedIndex = 0;
 
-  static final List<Widget> _widgetOptions = <Widget>[
-    UserWidget(),
-    const DevicesScreen(),
-    const MetricScreen(),
-    const ConfigurationScreen(),
-  ];
+
 
   @override
   void initState() {
@@ -96,12 +91,54 @@ class _MainPageState extends State<MainPage> {
     setState(() {});
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _widgetOptions = _auth.currentUser != null ? <Widget>[
+      UserWidget(),
+      const DevicesScreen(),
+      const MetricScreen(),
+      const ConfigurationScreen(),
+    ] : <Widget>[
+      UserWidget(),
+      const ConfigurationScreen(),
+    ] ;
+
+    const loggedIn  = <BottomNavigationBarItem> [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Home',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.devices),
+        label: 'Devices',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.show_chart),
+        label: 'Metrics',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.settings),
+        label: 'Configuration',
+      ),
+    ];
+
+    const loggedOut = <BottomNavigationBarItem> [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Home',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.settings),
+        label: 'Configuration',
+      ),
+    ];
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('S H A S M'),
-        actions: _auth.currentUser != null
+        actions: _auth.currentUser != null //logout
             ? [
           IconButton(
             onPressed: () async {
@@ -131,24 +168,8 @@ class _MainPageState extends State<MainPage> {
       )
           : _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.devices),
-            label: 'Devices',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart),
-            label: 'Metrics',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Configuration',
-          ),
-        ],
+        items: _auth.currentUser != null ? loggedIn :
+          <BottomNavigationBarItem> [ loggedIn[0], loggedIn[3]],
         currentIndex: _selectedIndex,
         selectedItemColor: selectedColor,
         unselectedItemColor: unselectedColor,
