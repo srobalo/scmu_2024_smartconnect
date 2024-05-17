@@ -70,6 +70,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     if (success) {
       WiFiScan.instance.onScannedResultsAvailable.listen((results) {
         setState(() {
+          results.sort((a, b) => b.level.compareTo(a.level));
           _wifiNetworks = results;
           _isSearching = false;
         });
@@ -270,8 +271,10 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     bool success = await WiFiForIoTPlugin.connect(ssid, password: password, joinOnce: true, security: NetworkSecurity.WPA);
     if (success) {
       print('Conectado a $ssid');
+      NotificationToast.showToast(context, 'Connected to $ssid successfully');
     } else {
       print('Falha ao conectar a $ssid');
+      NotificationToast.showToast(context, 'Failed to connect to $ssid');
     }
 //     Attempt to establish connection
 //     int connectionResult = await _connectionProcess(

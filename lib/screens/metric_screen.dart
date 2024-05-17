@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:scmu_2024_smartconnect/widgets/gemini/gemini_api.dart';
+import 'package:scmu_2024_smartconnect/widgets/gemini/gemini_widget.dart';
 
 class MetricScreen extends StatelessWidget {
   const MetricScreen({super.key});
@@ -11,8 +13,8 @@ class MetricScreen extends StatelessWidget {
       ),
       body: const Center(
         child: Text(
-          'Metrics Page',
-          style: TextStyle(fontSize: 24.0),
+          'Metrics',
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );
