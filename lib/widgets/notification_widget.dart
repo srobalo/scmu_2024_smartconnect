@@ -23,6 +23,11 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     _notificationsFuture = _getUserNotifications();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   // Method to fetch notifications and map them to Notification objects
   Future<List<EventNotification>> _getNotifications() async {
     final List<DocumentSnapshot<Object?>> documents = await _firestoreService
