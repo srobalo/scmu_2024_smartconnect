@@ -10,7 +10,7 @@ class Device {
   final String ip;
   late DeviceState state;
   final String commandId;
-  final List<SceneAction> sceneActions;
+  final List<Actuator> sceneActions;
   final List<Trigger> triggers;
 
   Device({
@@ -24,6 +24,34 @@ class Device {
     this.sceneActions = const [],
     this.triggers = const [],
   });
+
+  // Convert a Firestore document into a Device object
+  static Device fromMap(Map<String, dynamic> map) {
+    return Device(
+      userid: map['userid'] ?? '',
+      name: map['name'] ?? '',
+      domain: map['domain'] ?? '',
+      icon: map['icon'] ?? '',
+      state: DeviceState.values.firstWhere(
+            (e) => e.toString() == 'DeviceState.' + (map['state'] ?? ''),
+        orElse: () => DeviceState.off, // Default state
+      ),
+      commandId: map['commandId'] ?? '',
+      ip: map['ip'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'userid': userid,
+      'name': name,
+      'domain': domain,
+      'icon': icon,
+      'state': state.toString(),
+      'commandId': commandId,
+      'ip': ip,
+    };
+  }
 
   static Device fromFirestore(QueryDocumentSnapshot<Object?> doc) {
     final data = doc.data() as Map<String, dynamic>;

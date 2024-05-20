@@ -9,7 +9,6 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import '../defaults/default_values.dart';
 import '../objects/custom_notification.dart';
-import '../objects/scene_action.dart';
 import '../objects/user.dart';
 
 class SceneConfigurationScreen extends StatefulWidget {
@@ -23,11 +22,12 @@ class SceneConfigurationScreen extends StatefulWidget {
 
 
 class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
-  List<Sensor> sensors = [];
+  List<Trigger> triggers = [];
   List<Device> selectedDevices = [];
   String sceneName = 'My Scene'; // Default scene name
   List<Trigger> selectedTriggers = [];
-  List<SceneAction> selectedActions = [];
+  List<Actuator> selectedActions = [];
+  List<Actuator> actuators = [];
   bool showNotification = false; // Default value for show notification checkbox
   List<CustomNotification> customNotifications = []; // List to hold custom notifications
 
@@ -38,26 +38,73 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
 
     super.initState();
     // Load custom notifications from Firestore
-    fetchSensorsFromFirestore();
+    fetchTriggersFromFirestore();
+    fetchActuatorsFromFirestore();
     loadCustomNotifications();
   }
-  Future<void> fetchSensorsFromFirestore() async {
-    print("procurando");
+  Future<void> fetchTriggersFromFirestore() async {
     FirebaseFirestore db = FirebaseFirestore.instance;
-    QuerySnapshot<Map<String, dynamic>> snapshot = await db.collection('sensors').get();
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await db.collection('triggers').get();
 
-    List<Sensor> fetchedSensors = snapshot.docs.map((doc) {
-      return Sensor.fromFirestore(doc);
-    }).toList();
+      List<Trigger> fetchedTriggers = snapshot.docs.map((doc) {
+        return Trigger.fromFirestore(doc);
+      }).toList();
 
-    setState(() {
-      sensors = fetchedSensors;
-    });
+      setState(() {
+        triggers = fetchedTriggers;
+      });
 
-    // Optional: Log fetched data for verification
-    for (Sensor sensor in sensors) {
-      print(sensor);
+    } catch (e) {
+      print('Error fetching triggers from Firestore: $e');
     }
+  }
+
+  Future<void> fetchActuatorsFromFirestore() async {
+    print("Fetching actuators from Firestore...");
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await db.collection('actions').get();
+      print("Documents fetched: ${snapshot.docs.length}");
+
+      List<Actuator> fetchedActuator = snapshot.docs.map((doc) {
+        print("Processing document: ${doc.data()}");
+        return Actuator.fromFirestore(doc);
+      }).toList();
+
+      setState(() {
+        actuators = fetchedActuator;
+      });
+
+      print("Fetched actuator:");
+      for (Actuator actuator in actuators) {
+        print(actuator.toMap());
+      }
+    } catch (e) {
+      print('Error fetching actuators from Firestore: $e');
+    }
+  }
+
+  void _saveSceneConfiguration() {
+    // Create a new scene object from the user inputs
+    final scene = Scene(
+      name: sceneName,
+      triggers: selectedTriggers,
+      actions: selectedActions,
+    );
+
+    // Convert the scene object into a Map
+    final sceneData = scene.toMap();
+
+    print("Saving scene: ${sceneData}");
+
+    // Add the scene to the Firestore 'scenes' collection
+    FirebaseFirestore.instance.collection('scenes').add(sceneData).then((result) {
+      print("Scene saved successfully!");
+      Navigator.pop(context); // Optionally navigate back
+    }).catchError((error) {
+      print("Failed to save scene: $error");
+    });
   }
 
   void loadCustomNotifications() async {
@@ -105,70 +152,42 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                   style: const TextStyle(
                     color: Colors.black,
                   ),
-                  onTap: () {
-                    setState(() {
-                      sceneName = sceneName;
-                    });
-                  },
-                  onEditingComplete: () {
-                    setState(() {
-                      sceneName = sceneName;
-                    });
-                  },
                 ),
                 const SizedBox(height: 16.0),
                 DropdownButtonFormField<Trigger>(
                   hint: const Text('Select Trigger(s)'),
                   value: null,
-                  onChanged: (selectedTrigger) {
+                  onChanged: (Trigger? selectedTrigger) {
                     setState(() {
                       if (selectedTrigger != null) {
                         selectedTriggers.add(selectedTrigger);
                       }
                     });
                   },
-                  items: sensors.isNotEmpty ? sensors.map((sensor) {
+                  items: triggers.map((Trigger trigger) {
                     return DropdownMenuItem<Trigger>(
-                      value: Trigger(device: Device(
-                          userid: "fromSensor",
-                          name: sensor.name,
-                          domain: sensor.type,
-                          icon: "assets/sensor_icon.png",
-                          state: DeviceState.off,
-                          commandId: "sensor",
-                          ip: '192.168.1.x'
-                      ), condition: sensor.location), // Ensure each value is unique
-                      child: Text("${sensor.name} (${sensor.location})"),
+                      value: trigger,
+                      child: Text("${trigger.name} (Command: ${trigger.command})"),
                     );
-                  }).toList() : [
-                    const DropdownMenuItem<Trigger>(
-                      value: null,
-                      child: Text('No triggers available'),
-                    ),
-                  ],
+                  }).toList(),
                 ),
                 const SizedBox(height: 16.0),
-                DropdownButtonFormField<SceneAction>(
-                  hint: const Text('Select Action(s)'),
+                DropdownButtonFormField<Actuator>(
+                  hint: const Text('Select Actuators'),
                   value: null,
-                  onChanged: (selectedAction) {
+                  onChanged: (Actuator? selectedAction) {
                     setState(() {
                       if (selectedAction != null) {
                         selectedActions.add(selectedAction);
                       }
                     });
                   },
-                  items: widget.devices.isNotEmpty ? widget.devices.map((device) {
-                    return DropdownMenuItem<SceneAction>(
-                      value: SceneAction(device: device, command: 'Command'), // Ensure each value is unique
-                      child: Text(device.name),
+                  items: actuators.map((Actuator actuator) {
+                    return DropdownMenuItem<Actuator>(
+                      value: actuator,
+                      child: Text("Actuate on ${actuator.name}"),
                     );
-                  }).toList() : [
-                    const DropdownMenuItem<SceneAction>(
-                      value: null,
-                      child: Text('No actions available'),
-                    ),
-                  ],
+                  }).toList(),
                 ),
                 const SizedBox(height: 16.0),
                 Row(
@@ -225,26 +244,7 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                   ),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: () {
-                    // Create scene with selected devices
-                    final scene = Scene(
-                      name: sceneName,
-                      triggers: selectedTriggers,
-                      actions: selectedActions,
-                    );
-                    
-                    _saveSceneConfiguration();
-                    
-                    // Save scene to database or perform other actions
-                    // todo: Save scene to database
-                    // Reset selected devices
-                    setState(() {
-                      selectedTriggers.clear();
-                      selectedActions.clear();
-                    });
-                    // Navigate back to previous screen
-                    Navigator.pop(context);
-                  },
+                  onPressed: _saveSceneConfiguration,
                   child: const Text('Save Scene'),
                 ),
               ],
@@ -256,5 +256,3 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
   }
 }
 
-class _saveSceneConfiguration {
-}

@@ -19,11 +19,11 @@ class _DevicesScreenState extends State<DevicesScreen> with SingleTickerProvider
   late TabController _tabController;
 
   List<Device> devices = [
-    Device(userid:"notimplemented", name: "Outside Lights", domain: "Garden", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "1", ip: '172.20.10.13'),
-    Device(userid:"notimplemented", name: "House Lights", domain: "Home", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "2", ip: '172.20.10.13'),
-    Device(userid:"notimplemented", name: "Backdoor", domain: "Home Door", icon: "assets/smart_lock.png", state: DeviceState.off, commandId: "3", ip: '172.20.10.13'),
-    Device(userid:"notimplemented", name: "Garage Door", domain: "Garage", icon: "assets/smart_garage.png", state: DeviceState.off, commandId: "4", ip: '172.20.10.13'),
-    Device(userid:"notimplemented", name: "House Humidity", domain: "Home Environment", icon: "assets/smart_sensor_humidity.png", state: DeviceState.off, commandId: "5", ip: '172.20.10.13'),
+    Device(userid:"1", name: "Outside Lights", domain: "Garden", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "1", ip: '172.20.10.13'),
+    Device(userid:"2", name: "House Lights", domain: "Home", icon: "assets/smart_bulb.png", state: DeviceState.off, commandId: "2", ip: '172.20.10.13'),
+    Device(userid:"3", name: "Backdoor", domain: "Home Door", icon: "assets/smart_lock.png", state: DeviceState.off, commandId: "3", ip: '172.20.10.13'),
+    Device(userid:"4", name: "Garage Door", domain: "Garage", icon: "assets/smart_garage.png", state: DeviceState.off, commandId: "4", ip: '172.20.10.13'),
+    Device(userid:"5", name: "House Humidity", domain: "Home Environment", icon: "assets/smart_sensor_humidity.png", state: DeviceState.off, commandId: "5", ip: '172.20.10.13'),
   ]; //for testing
 
   @override
