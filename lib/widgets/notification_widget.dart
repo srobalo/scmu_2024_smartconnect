@@ -16,6 +16,7 @@ class NotificationWidget extends StatefulWidget {
 class _NotificationWidgetState extends State<NotificationWidget> {
   final FirestoreService _firestoreService = FirestoreService();
   late Future<List<EventNotification>> _notificationsFuture;
+  final Map<String, List<EventNotification>> _notificationCache = {};
 
   @override
   void initState() {
@@ -28,7 +29,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     super.dispose();
   }
 
-  // Method to fetch notifications and map them to Notification objects
+  /*
   Future<List<EventNotification>> _getNotifications() async {
     final List<DocumentSnapshot<Object?>> documents = await _firestoreService
         .getOrderedDocuments('notifications', orderBy: 'timestamp', descending: true);
@@ -37,15 +38,24 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         .toList();
     return notifications;
   }
+  */
 
-  // Method to fetch notifications and map them to Notification objects
+  // Method to fetch user notifications and map them to Notification objects
   Future<List<EventNotification>> _getUserNotifications() async {
     final id = await MyPreferences.loadData<String>("USER_ID");
+
+    if (_notificationCache.containsKey(id)) {
+      return _notificationCache[id]!;
+    }
+
     final List<DocumentSnapshot<Object?>> documents = await _firestoreService
-        .getOrderedDocumentsFromUser('notifications', id!,orderBy: 'timestamp', descending: true);
+        .getOrderedDocumentsFromUser('notifications', id!, orderBy: 'timestamp', descending: true);
+
     final List<EventNotification> notifications = documents.map((doc) =>
         EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>))
         .toList();
+
+    _notificationCache[id] = notifications;
     return notifications;
   }
 
