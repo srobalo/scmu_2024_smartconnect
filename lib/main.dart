@@ -9,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
+import 'package:scmu_2024_smartconnect/widgets/sun_and_moon.dart';
 import 'firebase_options.dart';
 import 'generic_listener.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_widget.dart';
@@ -154,12 +155,21 @@ class _MainPageState extends State<MainPage> {
       body: _selectedIndex == 0 || _selectedIndex == 1
           ? Column(
         children: [
-          SizedBox(
-            width: double.infinity,
-            child: Image.asset(
-              'assets/smart_home_dynamic.jpg',
-              fit: BoxFit.cover,
-            ),
+          Stack(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: Image.asset(
+                  'assets/smart_home_dynamic.jpg',
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const Positioned(
+                top: 0,
+                left: 0,
+                child: SunAndMoonWidget(),
+              ),
+            ],
           ),
           Expanded(
             child: _widgetOptions.elementAt(_selectedIndex),
