@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const int devicePort = 11111;
+const int devicePort = 80;
 const int deviceSearchTimerSeconds = 7;
 //
 const String firebaseRealtimeDBUrl = 'https://scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app/';

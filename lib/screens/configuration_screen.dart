@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../objects/device.dart';
 import '../utils/excuses.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
@@ -64,6 +65,12 @@ class ConfigurationScreen extends StatelessWidget {
                           },
                           child: const Text('Test Notification Database'),
                         ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            await _requestBrowserTest();
+                          },
+                          child: const Text('Test Browser'),
+                        ),
                       ],
                     ),
                   ),
@@ -122,6 +129,13 @@ class ConfigurationScreen extends StatelessWidget {
       title: 'Notification Test',
       body: excuse,
     );
+  }
+
+  Future<void> _requestBrowserTest() async {
+    final Uri url = Uri.parse('https://flutter.dev');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
   }
 
   Future<void> _requestDatabaseTest() async {

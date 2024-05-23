@@ -25,10 +25,10 @@ class LoginScreen extends StatelessWidget {
         Navigator.pop(context),
       });
 
-      FirebaseDB().getUserFromEmail(email).then((value) {
+      await FirebaseDB().getUserFromEmail(email).then((value) async {
       if (value != null) {
         TheUser u = TheUser.fromFirestoreDoc(value);
-        MyPreferences.saveData<String>("USER_ID", u.id);
+        await MyPreferences.saveData<String>("USER_ID", u.id);
         print("User logged in, id:${u.id}");
       } else {
         // Handle the case where value is null
