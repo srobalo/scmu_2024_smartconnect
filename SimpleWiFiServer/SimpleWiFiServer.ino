@@ -1,18 +1,14 @@
 
 #include <ESP32Firebase.h>
-#include <WIFIManager.h>
-/* #include <WiFi.h> */
-//#include <Servo.h>
+#include <WiFiManager.h>
 
 
-/* const char* ssid = "Andre";
-const char* password = "olaadeus123"; */
 const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app";
 //const char* firebaseAuth  = "QbSDiFbhpZLFahaXUakYKmF2KCtD9DvZgpCutLw8";
 
 Firebase firebase(firebaseHost);
 
-/* WiFiServer server(80); */
+WiFiServer server(11111);
 int ledPin = 21;
 int photoResistorPin = 34;
 static const int servoPin = 13;
@@ -21,17 +17,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);  // set the LED pin mode
   pinMode(photoResistorPin, INPUT);
-  //servo1.attach(servoPin);
   delay(10);
-
-  // We start by connecting to a WiFi network
-
-  /*  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid); */
-  /* 
-  WiFi.begin(ssid, password); */
 
 
   WiFiManager wm;

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../defaults/default_values.dart';
 import '../utils/notification_toast.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+import 'package:url_launcher/url_launcher.dart';
+import "../utils/network_utility.dart";
 
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({Key? key}) : super(key: key);
@@ -71,6 +73,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       WiFiScan.instance.onScannedResultsAvailable.listen((results) {
         setState(() {
           results.sort((a, b) => b.level.compareTo(a.level));
+          results.where((element) => element.ssid.contains("SHASM"));
           _wifiNetworks = results;
           _isSearching = false;
         });
@@ -87,7 +90,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         _isSearching = false;
       });
       if (_wifiNetworks.isEmpty) {
-        NotificationToast.showToast(context, "No networks found.");
+        NotificationToast.showToast(context, "No SHASM's devices found.");
       }
     });
 
@@ -194,8 +197,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                           subtitle: Text('Signal: ${_wifiNetworks[index].level} dBm'),
                           trailing: ElevatedButton(
                             onPressed: () {
-                              // Handle connect button press
-                              connectToDevice(_wifiNetworks[index]);
+                              _launchURL();
                             },
                             child: const Text('Connect'),
                           ),
@@ -211,71 +213,79 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       ),
     );
   }
-
-  void connectToDevice(WiFiAccessPoint wifi) {
-    // Show a dialog to input SSID and password
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String ssid = wifi.ssid;
-        String password = '';
-
-        return AlertDialog(
-          title: const Text('Connect to Device'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // TextField(
-              //   decoration: const InputDecoration(labelText: 'SSID'),
-              //   style: const TextStyle(color: Colors.black),
-              //   onChanged: (value) {
-              //     ssid = value;
-              //   },
-              // ),
-              TextField(
-                decoration: const InputDecoration(labelText: 'Password'),
-                style: const TextStyle(color: Colors.black),
-                onChanged: (value) {
-                  password = value;
-                },
-                obscureText: true,
-              ),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                // Send SSID and password to the device and connect
-                sendCredentialsAndConnect(ssid, password);
-                Navigator.of(context).pop(); // Close the dialog
-              },
-
-              child: const Text('Connect'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
+  // Função para abrir a URL no navegador do dispositivo
+  _launchURL() async {
+    String url = (await NetworkUtility.getLocalIpAddress()) ?? "192.168.1.1" ;
+    Uri ip =Uri.parse( "$url:$devicePort");
+    await canLaunchUrl(ip) ? await launchUrl(ip) : throw 'Could not launch $url';
   }
-
-  Future<void> sendCredentialsAndConnect(String ssid, String password) async {
-    // Print debug information
-    print('SSID: $ssid');
-    print('Password: $password');
-    bool success = await WiFiForIoTPlugin.connect(ssid, password: password, joinOnce: true, security: NetworkSecurity.WPA);
-    if (success) {
-      print('Conectado a $ssid');
-      NotificationToast.showToast(context, 'Connected to $ssid successfully');
-    } else {
-      print('Falha ao conectar a $ssid');
-      NotificationToast.showToast(context, 'Failed to connect to $ssid');
-    }
+}
+  //
+  // void connectToDevice(WiFiAccessPoint wifi) {
+  //   // Show a dialog to input SSID and password
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       String ssid = wifi.ssid;
+  //       String password = '';
+  //
+  //       return AlertDialog(
+  //         title: const Text('Connect to Device'),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             // TextField(
+  //             //   decoration: const InputDecoration(labelText: 'SSID'),
+  //             //   style: const TextStyle(color: Colors.black),
+  //             //   onChanged: (value) {
+  //             //     ssid = value;
+  //             //   },
+  //             // ),
+  //             TextField(
+  //               decoration: const InputDecoration(labelText: 'Password'),
+  //               style: const TextStyle(color: Colors.black),
+  //               onChanged: (value) {
+  //                 password = value;
+  //               },
+  //               obscureText: true,
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           ElevatedButton(
+  //             onPressed: () {
+  //               // Send SSID and password to the device and connect
+  //               sendCredentialsAndConnect(ssid, password);
+  //               Navigator.of(context).pop(); // Close the dialog
+  //             },
+  //
+  //             child: const Text('Connect'),
+  //           ),
+  //           ElevatedButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop(); // Close the dialog
+  //             },
+  //             child: const Text('Cancel'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+  //
+  // Future<void> sendCredentialsAndConnect(String ssid, String password) async {
+  //   // Print debug information
+  //   print('SSID: $ssid');
+  //   print('Password: $password');
+  //   bool success = await WiFiForIoTPlugin.connect(ssid, password: password, joinOnce: true, security: NetworkSecurity.WPA);
+  //   if (success) {
+  //     print('Conectado a $ssid');
+  //
+  //     NotificationToast.showToast(context, 'Connected to $ssid successfully');
+  //   } else {
+  //     print('Falha ao conectar a $ssid');
+  //     NotificationToast.showToast(context, 'Failed to connect to $ssid');
+  //   }
 //     Attempt to establish connection
 //     int connectionResult = await _connectionProcess(
 //         ipAddress, ssid, password);
@@ -297,8 +307,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 //       NotificationToast.showToast(
 //           context, "Please provide valid credentials.");
 //     }
-  }
-}
+
 //
 // Future<int> _connectionProcess(
 //     String ipAddress, String ssid, String password) async {
