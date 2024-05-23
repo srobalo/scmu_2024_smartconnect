@@ -1,17 +1,18 @@
 #include <WiFi.h> 
-
+#include <WiFiManager.h>
+#include <HTTPClient.h>
 
 // String getMacAddress(){
-//   return WiFi.macAddress();
+//   return 
 // }
 // void sendMacAddress(){
 
 //   String myMAC = getMacAddress();
 //    if (WiFi.status() == WL_CONNECTED) {
 //         HTTPClient http;
-//         http.begin(serverName);
+//         http.begin();
 //         http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-//         String httpRequestData = "mac=" + macAddress;
+//         String httpRequestData = "mac=" + myMAC;
 //         int httpResponseCode = http.POST(httpRequestData);
 
 //         if (httpResponseCode > 0) {

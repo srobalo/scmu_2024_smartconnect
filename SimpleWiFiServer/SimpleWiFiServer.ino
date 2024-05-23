@@ -1,6 +1,9 @@
 
+
+
 #include <ESP32Firebase.h>
 #include <WiFiManager.h>
+
 
 
 const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app";
@@ -8,10 +11,11 @@ const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.fir
 
 Firebase firebase(firebaseHost);
 
-WiFiServer server(11111);
+WiFiServer server(80);
 int ledPin = 21;
 int photoResistorPin = 34;
 static const int servoPin = 13;
+String MAC;
 //Servo servo1;
 void setup() {
   Serial.begin(9600);
@@ -39,12 +43,16 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
+
   /** FiREBASE */
   firebase.setString("Example/setString", "It's Working");
   firebase.setInt("Example/setInt", 123);
   firebase.setFloat("Example/setFloat", 45.32);
 
+  MAC = WiFi.macAddress();
+
   server.begin();
+
 }
 
 void loop() {
@@ -75,7 +83,11 @@ void loop() {
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
             client.println();
-            client.println("Backdoor control");
+            if (currentLine.startsWith("GET /mac")) {
+              client.println(MAC);
+            } else {
+              client.println("Backdoor control");
+            }
             // the content of the HTTP response follows the header:
             //client.print("Click <a href=\"/H\">here</a> 180.<br>");
             //client.print("Click <a href=\"/L\">here</a> 0<br>");

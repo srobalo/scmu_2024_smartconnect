@@ -200,7 +200,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                               Text('Signal: ${_wifiNetworks[index].level} dBm'),
                           trailing: ElevatedButton(
                             onPressed: () {
-                              connectToDevice( _wifiNetworks[index]);
+                              connectToDevice(_wifiNetworks[index]);
                             },
                             child: const Text('Connect'),
                           ),
@@ -219,11 +219,21 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 
   // Função para abrir a URL no navegador do dispositivo
   _launchURL() async {
-    String url = (await NetworkInfo().getWifiGatewayIP())?? "192.168.1.1";
-    Uri ip = Uri.parse("$url:$devicePort");
-    await canLaunchUrl(ip)
-        ? await launchUrl(ip)
-        : NotificationToast.showToast(context, 'Failed to connect $ip');
+    String url = (await NetworkInfo().getWifiGatewayIP()) ?? "192.168.1.1";
+    // Uri ip = Uri.parse("$url:$devicePort");
+    final Uri ip = Uri.parse(url);
+    if (!await launchUrl(ip, mode: LaunchMode.externalApplication)) {
+      NotificationToast.showToast(context, 'Failed to connect $ip');
+    } else {
+      final response = await http.get(Uri.parse('http://$url/mac'));
+      if (response.statusCode == 200) {
+        setState(() {
+          print( 'MAC ${response.body}');
+        });
+      } else {
+        NotificationToast.showToast(context, 'Failed to load MAC address');
+      }
+    }
   }
 
   Future<void> sendCredentialsAndConnect(String ssid, String password) async {
@@ -235,6 +245,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     if (success) {
       print('Conectado a $ssid');
       await _launchURL();
+
       NotificationToast.showToast(context, 'Connected to $ssid successfully');
     } else {
       print('Falha ao conectar a $ssid');
@@ -279,7 +290,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                 sendCredentialsAndConnect(ssid, password);
                 Navigator.of(context).pop(); // Close the dialog
               },
-
               child: const Text('Connect'),
             ),
             ElevatedButton(
@@ -293,9 +303,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       },
     );
   }
-
 }
-
 
 //
 // Future<int> _connectionProcess(
