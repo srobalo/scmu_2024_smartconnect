@@ -107,7 +107,7 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                       }
                       return null;
                     },
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                     ),
                   ),
@@ -135,8 +135,8 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                       }
                       return null;
                     },
-                    style: TextStyle(
-                      color: backgroundColorSecondary,
+                    style: const TextStyle(
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 16.0),
@@ -163,8 +163,8 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                       }
                       return null;
                     },
-                    style: TextStyle(
-                      color: backgroundColorSecondary,
+                    style: const TextStyle(
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 16.0),
@@ -191,8 +191,8 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                       }
                       return null;
                     },
-                    style: TextStyle(
-                      color: backgroundColorSecondary,
+                    style: const TextStyle(
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 20.0),
