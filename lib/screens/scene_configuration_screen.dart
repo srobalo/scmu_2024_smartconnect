@@ -10,6 +10,7 @@ import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import '../defaults/default_values.dart';
 import '../objects/custom_notification.dart';
 import '../objects/user.dart';
+import '../screens/create_custom_notification.dart';
 
 class SceneConfigurationScreen extends StatefulWidget {
   final List<Device> devices;
@@ -235,8 +236,12 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                       // Add option to create a new custom notification
                       ElevatedButton(
                         onPressed: () {
-                          // Navigate to a screen to create a new custom notification
-                          // You need to implement this screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CreateNotificationForm(),
+                            ),
+                          );
                         },
                         child: const Text('Create New Custom Notification'),
                       ),
