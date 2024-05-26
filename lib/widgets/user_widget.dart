@@ -141,9 +141,8 @@ class AuthenticatedUserWidget extends StatelessWidget {
                 height: 3,
                 color: backgroundColorTertiary,
               ),
-              Container(
-                width: double.infinity,
-                height: 450,
+              SizedBox(
+                height: (MediaQuery.of(context).size.height * 0.6)-15, // Adjust the height as needed
                 child: NotificationWidget(),
               ),
             ],

@@ -148,6 +148,7 @@ class ConfigurationScreen extends StatelessWidget {
       description: 'This is the description, just for testing the notifications.',
       observation: 'Observation',
       timestamp: DateTime.now(),
+      shown: false,
     );
 
     // Convert the Notification object to a map
@@ -159,6 +160,7 @@ class ConfigurationScreen extends StatelessWidget {
       'description': notification.description,
       'observation': notification.observation,
       'timestamp': notification.timestamp.toIso8601String(),
+      'shown': false,
     };
 
     // Send the notification data to Firebase

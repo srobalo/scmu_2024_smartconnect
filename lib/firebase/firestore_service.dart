@@ -4,6 +4,15 @@ import 'package:scmu_2024_smartconnect/objects/user.dart';
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Stream<List<DocumentSnapshot>> getOrderedDocumentsStreamFromUser(String collection, String userId, {String orderBy = 'timestamp', bool descending = true}) {
+    return FirebaseFirestore.instance
+        .collection(collection)
+        .where('userid', isEqualTo: userId)
+        .orderBy(orderBy, descending: descending)
+        .snapshots()
+        .map((snapshot) => snapshot.docs);
+  }
+
   // Retrieve ordered documents from a collection
   Future<List<DocumentSnapshot>> getOrderedDocuments(String collectionName, {required String orderBy, bool descending = false}) async {
     try {
@@ -122,8 +131,9 @@ class FirestoreService {
   // Send a document to Firestore
   Future<void> sendDocument(String collectionName, Map<String, dynamic> data) async {
     try {
-      await _firestore.collection(collectionName).add(data);
+      DocumentReference docRef = await _firestore.collection(collectionName).add(data);
       print("Document added successfully");
+      await docRef.update({'id': docRef.id});
     } catch (e) {
       print("Error sending document: $e");
     }
@@ -177,6 +187,15 @@ class FirestoreService {
     } catch (e) {
       print("Error retrieving documents: $e");
       return [];
+    }
+  }
+
+  Future<void> updateNotificationShown(String documentId) async {
+    try {
+      await _firestore.collection("notifications").doc(documentId).update({'shown': true});
+      print("Notification with ID $documentId updated successfully");
+    } catch (e) {
+      print("Error updating notification: $e");
     }
   }
 

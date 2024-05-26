@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
 import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
+import 'package:scmu_2024_smartconnect/notification_manager.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
+
+import '../utils/excuses.dart';
 
 class NotificationWidget extends StatefulWidget {
   const NotificationWidget({super.key});
@@ -15,62 +18,54 @@ class NotificationWidget extends StatefulWidget {
 
 class _NotificationWidgetState extends State<NotificationWidget> {
   final FirestoreService _firestoreService = FirestoreService();
-  late Future<List<EventNotification>> _notificationsFuture;
-  final Map<String, List<EventNotification>> _notificationCache = {};
+  late Stream<List<EventNotification>> _notificationsStream;
 
   @override
   void initState() {
     super.initState();
-    _notificationsFuture = _getUserNotifications();
+    _notificationsStream = _getUserNotificationsStream();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  /*
-  Future<List<EventNotification>> _getNotifications() async {
-    final List<DocumentSnapshot<Object?>> documents = await _firestoreService
-        .getOrderedDocuments('notifications', orderBy: 'timestamp', descending: true);
-    final List<EventNotification> notifications = documents.map((doc) =>
-        EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>))
-        .toList();
-    return notifications;
-  }
-  */
-
-  // Method to fetch user notifications and map them to Notification objects
-  Future<List<EventNotification>> _getUserNotifications() async {
-    final id = await MyPreferences.loadData<String>("USER_ID");
-
-    if (_notificationCache.containsKey(id)) {
-      return _notificationCache[id]!;
+  Future<void> _showNotification(EventNotification eventNotification) async {
+    final NotificationManager notificationManager = NotificationManager();
+    try {
+      await notificationManager.showNotification(
+        id: DateTime.now().second + DateTime.now().millisecond,
+        title: '${eventNotification.domain} - ${eventNotification.title}',
+        body: eventNotification.description,
+      );
+      await _firestoreService.updateNotificationShown(eventNotification.id);
+    } catch (e) {
+      print("Error showing notification or updating Firestore: $e");
     }
-
-    final List<DocumentSnapshot<Object?>> documents = await _firestoreService
-        .getOrderedDocumentsFromUser('notifications', id!, orderBy: 'timestamp', descending: true);
-
-    final List<EventNotification> notifications = documents.map((doc) =>
-        EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>))
-        .toList();
-
-    _notificationCache[id] = notifications;
-    return notifications;
   }
 
-  // Method to delete a notification
+  Stream<List<EventNotification>> _getUserNotificationsStream() async* {
+    final id = await MyPreferences.loadData<String>("USER_ID");
+    print("User ID: $id");
+    yield* _firestoreService.getOrderedDocumentsStreamFromUser('notifications', id!, orderBy: 'timestamp', descending: true).map(
+          (documents) {
+        print("Documents Retrieved: ${documents.length}");
+        return documents.map((doc) {
+          print("Document Data: ${doc.data()}");
+          EventNotification eN = EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>);
+          if(!eN.shown) _showNotification(eN);
+          return eN;
+        }).toList();
+      },
+    );
+  }
+
   Future<void> _deleteNotification(EventNotification notification) async {
     await _firestoreService.deleteDocumentsByFieldValue('notifications', "id", notification.id);
     setState(() {
-      _notificationsFuture = _getUserNotifications();
+      _notificationsStream = _getUserNotificationsStream();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    var normal =
-    [
+    var normal = [
       Colors.cyan.withOpacity(0.4),
       Colors.cyan.withOpacity(0.0),
       Colors.cyan.withOpacity(0.0),
@@ -80,8 +75,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
       Colors.cyan.withOpacity(0.0),
     ];
 
-    var alert =
-    [
+    var alert = [
       Colors.redAccent.withOpacity(0.4),
       Colors.redAccent.withOpacity(0.0),
       Colors.redAccent.withOpacity(0.0),
@@ -92,8 +86,8 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     ];
 
     return Scaffold(
-      body: FutureBuilder<List<EventNotification>>(
-        future: _notificationsFuture,
+      body: StreamBuilder<List<EventNotification>>(
+        stream: _notificationsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -104,10 +98,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
               child: Text("Error: ${snapshot.error}"),
             );
           } else {
-            final List<EventNotification> notifications = snapshot.data!;
+            final List<EventNotification> notifications = snapshot.data ?? [];
             if (notifications.isEmpty) {
               return const Center(
-                child: Text("No new notifications",style: TextStyle(fontSize: 20.0)),
+                child: Text("No new notifications", style: TextStyle(fontSize: 20.0)),
               );
             } else {
               return ListView.builder(
@@ -122,8 +116,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                   }
 
                   return Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 2.0, horizontal: 4.0),
+                    margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
                       color: backgroundColorTertiary, // Change color as needed
@@ -157,7 +150,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8.0),
-                              child: Icon(Icons.close, size: 32,color: backgroundColorSecondary),
+                              child: Icon(Icons.close, size: 32, color: backgroundColorSecondary),
                             ),
                           ),
                         ),
@@ -166,9 +159,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                           right: 3,
                           child: Text(
                             _formatDateTime(notification.timestamp),
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: backgroundColorSecondary),
+                            style: TextStyle(fontSize: 12, color: backgroundColorSecondary),
                           ),
                         ),
                       ],
@@ -185,5 +176,11 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 }
 
 String _formatDateTime(DateTime dateTime) {
-  return "${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute}:${dateTime.second}";
+  String day = dateTime.day.toString().padLeft(2, '0');
+  String month = dateTime.month.toString().padLeft(2, '0');
+  String year = dateTime.year.toString();
+  String hour = dateTime.hour.toString().padLeft(2, '0');
+  String minute = dateTime.minute.toString().padLeft(2, '0');
+  String second = dateTime.second.toString().padLeft(2, '0');
+  return "$day/$month/$year $hour:$minute:$second";
 }

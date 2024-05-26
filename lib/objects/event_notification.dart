@@ -8,6 +8,7 @@ class EventNotification {
   final String description;
   final String observation;
   final DateTime timestamp;
+  final bool shown;
 
   EventNotification({
     required this.id,
@@ -17,6 +18,7 @@ class EventNotification {
     required this.description,
     required this.observation,
     required this.timestamp,
+    required this.shown,
   });
 
   static EventNotification fromFirestore(QueryDocumentSnapshot<Object?> doc) {
@@ -28,6 +30,7 @@ class EventNotification {
     final String description = data['description'];
     final String observation = data['observation'];
     final String timestampString = data['timestamp'];
+    final bool shown = data['shown'];
 
     final DateTime timestamp = DateTime.parse(timestampString);
 
@@ -39,6 +42,7 @@ class EventNotification {
       description: description,
       observation: observation,
       timestamp:timestamp,
+      shown: shown,
     );
   }
 }
