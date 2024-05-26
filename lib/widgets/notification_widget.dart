@@ -136,10 +136,13 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                             ),
                           ),
                         ),
-                        ListTile(
-                          leading: Icon(iconData, color: backgroundColorSecondary),
-                          title: Text("${notification.domain} - ${notification.title}"),
-                          subtitle: Text(notification.description),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6.0), // Adjust the value as needed
+                          child: ListTile(
+                            leading: Icon(iconData, color: backgroundColorSecondary),
+                            title: Text("${notification.domain} - ${notification.title}"),
+                            subtitle: Text(notification.description),
+                          ),
                         ),
                         Positioned(
                           top: 0,
