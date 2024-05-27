@@ -19,6 +19,7 @@ class NotificationWidget extends StatefulWidget {
 class _NotificationWidgetState extends State<NotificationWidget> {
   final FirestoreService _firestoreService = FirestoreService();
   late Stream<List<EventNotification>> _notificationsStream;
+  List<EventNotification> cacheEventNotification = [];
 
   @override
   void initState() {
@@ -46,12 +47,14 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     yield* _firestoreService.getOrderedDocumentsStreamFromUser('notifications', id!, orderBy: 'timestamp', descending: true).map(
           (documents) {
         print("Documents Retrieved: ${documents.length}");
-        return documents.map((doc) {
+        List<EventNotification> list  = documents.map((doc) {
           print("Document Data: ${doc.data()}");
           EventNotification eN = EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>);
           if(!eN.shown) _showNotification(eN);
           return eN;
         }).toList();
+        cacheEventNotification = list;
+        return list;
       },
     );
   }
@@ -60,6 +63,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     await _firestoreService.deleteDocumentsByFieldValue('notifications', "id", notification.id);
     setState(() {
       _notificationsStream = _getUserNotificationsStream();
+      cacheEventNotification.remove(notification);
     });
   }
 
@@ -89,17 +93,17 @@ class _NotificationWidgetState extends State<NotificationWidget> {
       body: StreamBuilder<List<EventNotification>>(
         stream: _notificationsStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+          if (snapshot.connectionState == ConnectionState.waiting && cacheEventNotification.isEmpty) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
           } else if (snapshot.hasError) {
             return Center(
               child: Text("Error: ${snapshot.error}"),
             );
           } else {
-            final List<EventNotification> notifications = snapshot.data ?? [];
-            if (notifications.isEmpty) {
+            final List<EventNotification> notifications = snapshot.data ?? cacheEventNotification;
+            if (notifications.isEmpty && cacheEventNotification.isEmpty) {
               return const Center(
                 child: Text("No new notifications", style: TextStyle(fontSize: 20.0)),
               );
