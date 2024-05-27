@@ -4,21 +4,26 @@ import '../objects/device.dart';
 class Actuator {
   final String command;
   final int id_action;
+  final String device_id;
   final String name;
+  final int counter;
 
   Actuator({
     required this.command,
     required this.id_action,
+    required this.device_id,
     required this.name,
+    required this.counter,
   });
 
-  // Creating a factory method to initialize Trigger from Firestore data
   factory Actuator.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Actuator(
       command: data['command'] ?? 'Unknown',
-      id_action: data['id_action'] ?? 'Unknown',
+      id_action: data['id_action'] ?? 0,
+      device_id: data['device_id'] ?? "",
       name: data['name'] ?? 'Unknown',
+      counter: data['counter'] ?? 0,
     );
   }
 
@@ -26,7 +31,9 @@ class Actuator {
     return Actuator(
       command: map['command'] ?? 'Unknown',
       id_action: map['id_action'] ?? 0,
+      device_id: map['device_id'] ?? "",
       name: map['name'] ?? 'Unknown',
+      counter: map['counter'] ?? 0,
     );
   }
 
@@ -34,13 +41,15 @@ class Actuator {
     return {
       'command': command,
       'id_action': id_action,
+      'device_id': device_id,
       'name': name,
+      'counter': counter,
     };
   }
 
   @override
   String toString() {
-    return 'Actuator{name: $name, command: $command, id_action: $id_action}';
+    return 'Actuator{name: $name, command: $command, id_action: $id_action, device_id: $device_id, counter: $counter}';
   }
-
 }
+

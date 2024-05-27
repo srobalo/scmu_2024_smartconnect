@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:scmu_2024_smartconnect/objects/scene_action.dart';
-import 'package:scmu_2024_smartconnect/objects/trigger.dart';
+import 'package:scmu_2024_smartconnect/objects/scene_actuator.dart';
+import 'package:scmu_2024_smartconnect/objects/scene_trigger.dart';
 
 class Device {
   final String userid;

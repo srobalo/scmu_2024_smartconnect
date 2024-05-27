@@ -1,8 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/objects/user.dart';
 
+import '../objects/scene_actuator.dart';
+import '../objects/scene_trigger.dart';
+
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Stream to listen to actuators changes
+  Stream<List<DocumentSnapshot>> getActuatorsStream(String deviceId) {
+    return  FirebaseFirestore.instance.collection('actions')
+        .where('device_id', isEqualTo: deviceId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs);
+  }
+
+  // Stream to listen to triggers changes
+  Stream<List<DocumentSnapshot>> getTriggersStream(String deviceId) {
+    return FirebaseFirestore.instance.collection('triggers')
+        .where('device_id', isEqualTo: deviceId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs);
+  }
 
   Stream<List<DocumentSnapshot>> getOrderedDocumentsStreamFromUser(String collection, String userId, {String orderBy = 'timestamp', bool descending = true}) {
     return FirebaseFirestore.instance

@@ -228,8 +228,9 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       final response = await http.get(Uri.parse('http://$url/mac'));
       if (response.statusCode == 200) {
         setState(() {
-          print( 'MAC ${response.body}');
+          print('MAC ${response.body}');
         });
+        NotificationToast.showToast(context, 'MAC ${response.body}');
       } else {
         NotificationToast.showToast(context, 'Failed to load MAC address');
       }

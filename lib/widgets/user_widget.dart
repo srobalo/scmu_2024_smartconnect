@@ -65,7 +65,8 @@ class AuthenticatedUserWidget extends StatelessWidget {
           return const CircularProgressIndicator();
         } else {
           String? email = snapshot.data;
-          return Column(
+          return SingleChildScrollView(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -129,12 +130,12 @@ class AuthenticatedUserWidget extends StatelessWidget {
               Container(
                 width: double.infinity,
                 height: 2,
-                color: Color.fromRGBO(0, 0, 0, 0.1),
+                color: const Color.fromRGBO(0, 0, 0, 0.1),
               ),
               Container(
                 width: double.infinity,
                 height: 1,
-                color: Color.fromRGBO(0, 0, 0, 0.3),
+                color: const Color.fromRGBO(0, 0, 0, 0.3),
               ),
               Container(
                 width: double.infinity,
@@ -142,10 +143,11 @@ class AuthenticatedUserWidget extends StatelessWidget {
                 color: backgroundColorTertiary,
               ),
               SizedBox(
-                height: (MediaQuery.of(context).size.height * 0.6)-15, // Adjust the height as needed
+                height: (MediaQuery.of(context).size.height * 0.6)-25, // Adjust the height as needed
                 child: const NotificationWidget(),
               ),
             ],
+          )
           );
         }
       },
