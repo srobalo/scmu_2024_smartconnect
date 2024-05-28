@@ -7,23 +7,84 @@ import 'package:scmu_2024_smartconnect/objects/scene_actuator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 import '../defaults/default_values.dart';
+import 'package:http/http.dart' as http;
 
-class ScenesScreen extends StatelessWidget {
+
+class ScenesScreen extends StatefulWidget {
   final List<Device> devices;
 
   const ScenesScreen({Key? key, required this.devices}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  _ScenesScreenState createState() => _ScenesScreenState();
+}
 
+class _ScenesScreenState extends State<ScenesScreen> {
+  Map<String, bool> sceneActive = {};
+  List<Scene> scenes = []; // Hold scenes after fetching
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchScenesFromFirebase(); // Fetch scenes on init
+  }
+
+  Future<void> sendCommandToESP(String triggerCommand, String actionCommand, String name, String command) async {
+    try {
+
+      final url = Uri.parse('http://192.168.1.204/${actionCommand}/${triggerCommand}/$command');
+      print(url);
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        print('Command sent successfully: $command');
+        NotificationToast.showToast(context, 'Scene "$name" updated: $command');
+      } else {
+        print('Failed to send command: $command, Status code: ${response.statusCode}');
+        NotificationToast.showToast(context, 'Failed to send command: $command');
+      }
+    } catch (e) {
+      print('Error sending command: $e');
+      NotificationToast.showToast(context, 'Error sending command: $e');
+    }
+  }
+
+
+  Future<List<Scene>> _fetchScenesFromFirebase() async {
+    final querySnapshot = await FirebaseFirestore.instance.collection('scenes').get();
+    final scenes = querySnapshot.docs.map((doc) => Scene.fromFirestore(doc)).toList();
+    // Initialize activation state for each scene
+    for (var scene in scenes) {
+      if (!sceneActive.containsKey(scene.name)) {
+        sceneActive[scene.name] = false; // Default to inactive
+      }
+    }
+
+    return scenes;
+  }
+
+  Future<void> _deleteSceneFromFirebase(Scene scene) async {
+    try {
+      await FirebaseFirestore.instance.collection('scenes')
+          .doc(scene.name)
+          .delete();
+      NotificationToast.showToast(context, "Scene deleted successfully.");
+    } catch (e) {
+      NotificationToast.showToast(context, "Failed to delete scene: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<List<Scene>>(
-        future: _fetchScenesFromFirebase(), // Fetch scenes from Firebase
+        future: _fetchScenesFromFirebase(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("No scenes available"));
           } else {
             final scenes = snapshot.data!;
             return ListView.builder(
@@ -34,33 +95,39 @@ class ScenesScreen extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
-                    color: backgroundColorTertiary, // Change color as needed
+                    color: backgroundColorTertiary,
                   ),
-                  child: Stack(
-                    children: [
-                      ListTile(
-                        leading: Icon(Icons.settings, color: backgroundColorSecondary),
-                        title: Text(scene.name),
-                        subtitle: Text('Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
-                        onTap: () {
-                          // Navigate to scene details screen
-                          // todo: Implement scene details screen
-                        },
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete, color: backgroundColorSecondary),
+                  child: ListTile(
+                    leading: Icon(Icons.lightbulb_outline, color: backgroundColorSecondary),
+                    title: Text(scene.name),
+                    subtitle: Text('Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Transform.scale(
+                          scale: 0.8,
+                          child: Switch(
+                            value: sceneActive[scene.name] ?? false,
+                            onChanged: (bool value) {
+                              setState(() {
+                                sceneActive[scene.name] = value;
+                              });
+                              print('Scene ${scene.actions[0].command} is now ${value ? 'active' : 'inactive'}');
+                              sendCommandToESP(scene.triggers[0].command, scene.actions[0].command, scene.name, value ? "on" : "off");
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
-                            _deleteSceneFromFirebase(scene)
-                                .then((value) {
-                              NotificationToast.showToast(context, "Scene deleted successfully.");
-                              // Refresh
-                            })
-                                .onError((error, stackTrace) {
-                              NotificationToast.showToast(context, "Failed to delete scene.");
-                            });
+                            _deleteSceneFromFirebase(scene);
                           },
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    onTap: () {
+                      // Optionally, navigate to a detailed view of the scene
+                    },
                   ),
                 );
               },
@@ -70,46 +137,16 @@ class ScenesScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Directly use the already available 'devices' passed into this screen
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SceneConfigurationScreen(devices: devices),
+              builder: (context) => SceneConfigurationScreen(devices: widget.devices),
             ),
           );
         },
         child: const Icon(Icons.add),
+        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }
-}
-
-Future<List<Scene>> _fetchScenesFromFirebase() async {
-  // Fetch scenes data from Firebase
-  final querySnapshot = await FirebaseFirestore.instance.collection('scenes').get();
-  final List<Scene> scenes = [];
-  for (final doc in querySnapshot.docs) {
-    // Parse Firebase document data into Scene objects
-    final scene = Scene.fromFirestore(doc);
-    scenes.add(scene);
-  }
-  return scenes;
-}
-
-Future<Set<void>> _deleteSceneFromFirebase(Scene scene) async {
-  //not implemented
-  return {Future.value()};
-}
-
-Future<List<Device>> _fetchDevices() async {
-  // Fetch devices from Firestore
-  QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('devices').get();
-
-  // Convert QuerySnapshot to List<Device>
-  List<Device> devices = [];
-  querySnapshot.docs.forEach((doc) {
-    devices.add(Device.fromFirestore(doc)); // Assuming Device has a constructor or method to create from Firestore document
-  });
-
-  return devices;
 }

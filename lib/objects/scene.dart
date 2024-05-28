@@ -6,11 +6,13 @@ class Scene {
   final String name;
   final List<Trigger> triggers;
   final List<Actuator> actions;
+  bool isActive; // Add this line
 
   Scene({
     required this.name,
     required this.triggers,
     required this.actions,
+    this.isActive = false, // Default value for isActive
   });
 
   // Converts Scene object to Map
@@ -19,6 +21,7 @@ class Scene {
       'name': name,
       'triggers': triggers.map((trigger) => trigger.toMap()).toList(),
       'actions': actions.map((action) => action.toMap()).toList(),
+      'isActive': isActive, // Include isActive in the map
     };
   }
 
@@ -41,10 +44,14 @@ class Scene {
       actions.addAll(actionList.map((actionData) => Actuator.fromMap(actionData as Map<String, dynamic>)));
     }
 
+    // Determine if the scene is active (default to false if not specified)
+    bool isActive = data['isActive'] ?? false;
+
     return Scene(
       name: name,
       triggers: triggers,
       actions: actions,
+      isActive: isActive,
     );
   }
 }
