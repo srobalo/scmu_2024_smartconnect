@@ -1,12 +1,18 @@
 import 'dart:async';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:scmu_2024_smartconnect/objects/capabilities.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import '../defaults/default_values.dart';
+import '../objects/device.dart';
+import '../utils/jwt.dart';
+import '../utils/my_preferences.dart';
 import '../utils/notification_toast.dart';
 import 'package:wifi_iot/wifi_iot.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../firebase/firestore_service.dart';
+import '../firebase/firebasedb.dart';
 import "../utils/network_utility.dart";
 
 class AddDeviceScreen extends StatefulWidget {
@@ -74,8 +80,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       WiFiScan.instance.onScannedResultsAvailable.listen((results) {
         setState(() {
           results.sort((a, b) => b.level.compareTo(a.level));
-          results.where((element) => element.ssid.contains("SHASM"));
-          _wifiNetworks = results;
+          _wifiNetworks = results.where((element) => element.ssid.contains("SHASM")).toList();
           _isSearching = false;
         });
       });
@@ -218,7 +223,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   }
 
   // Função para abrir a URL no navegador do dispositivo
-  _launchURL() async {
+  _launchURL(String ssid) async {
     String url = (await NetworkInfo().getWifiGatewayIP()) ?? "192.168.1.1";
     // Uri ip = Uri.parse("$url:$devicePort");
     final Uri ip = Uri.parse(url);
@@ -226,9 +231,42 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       NotificationToast.showToast(context, 'Failed to connect $ip');
     } else {
       final response = await http.get(Uri.parse('http://$url/mac'));
+      final id = await MyPreferences.loadData<String>("USER_ID");
       if (response.statusCode == 200) {
-        setState(() {
-          print('MAC ${response.body}');
+        setState(() async {
+          String mac = response.body;
+          print('MAC ${mac}');
+          Device device = Device(
+            userid: id ?? 'undefined',
+            name: '$id: $ssid',
+            domain: 'SHASM',
+            icon: 'assets/smart_bulb.png',
+            mac: mac,
+            ip: ip.toString(),
+            state: DeviceState.off,
+            commandId: null,
+            capabilities: {}
+          );
+         Device? d = await FirestoreService().createDeviceIfNotExists(device);  
+         if(  d != null){
+           if(d.userid == id){
+             final payload= {
+               'owner': d.userid,
+               'id': id,
+               'mac': mac
+             };
+             MyPreferences.saveData("capabilities", generateJwt(payload: payload));
+           }else{
+             Capabilities? p = d.capabilities[id] ;
+             final newPayload = {
+               'owner': d.userid,
+               'id': id,
+               'mac': mac,
+               "cap":p
+             };
+             MyPreferences.saveData("capabilities", generateJwt(payload: newPayload));
+           }
+         }
         });
         NotificationToast.showToast(context, 'MAC ${response.body}');
       } else {
@@ -245,7 +283,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         password: password, joinOnce: true, security: NetworkSecurity.WPA);
     if (success) {
       print('Conectado a $ssid');
-      await _launchURL();
+      await _launchURL( ssid);
 
       NotificationToast.showToast(context, 'Connected to $ssid successfully');
     } else {

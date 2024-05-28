@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/objects/user.dart';
 
+import '../objects/device.dart';
 import '../objects/scene_actuator.dart';
 import '../objects/scene_trigger.dart';
 
@@ -247,6 +248,27 @@ class FirestoreService {
       return [];
     }
   }
+  Future<List<QueryDocumentSnapshot>> getTriggerFromDevice(String mac,String trigger) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("triggers")
+          .where("device_id", isEqualTo: mac)
+          .where("command", isEqualTo: trigger).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+  Future<List<QueryDocumentSnapshot>> getActionFromDevice(String mac,String action) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("actions")
+          .where("device_id", isEqualTo: mac).where("command", isEqualTo: action).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
 
   Future<DocumentSnapshot?> getUserFromId(String userid) async {
     try {
@@ -300,4 +322,24 @@ class FirestoreService {
       return null;
     }
   }
+
+  Future<Device?> createDeviceIfNotExists(Device device) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("devices")
+          .where("mac", isEqualTo: device.mac).get();
+      if (querySnapshot.docs.isNotEmpty) {
+          return querySnapshot.docs.map((e) => Device.fromMap(e.data() as Map<String,dynamic>)).toList()[0];
+      }else {
+        DocumentReference documentReference = await FirebaseFirestore.instance
+            .collection("devices").add(device.toMap());
+        await documentReference.update({'id': documentReference.id});
+        return device;
+      }
+    } catch (e) {
+      print("Error creating user document: $e");
+      return null;
+    }
+  }
+
+
 }

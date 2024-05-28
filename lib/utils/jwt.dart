@@ -1,0 +1,31 @@
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+
+final String SECRET = "SHASM-2024";
+
+String generateJwt({ required Map<String, dynamic> payload}) {
+  // Create a JWT
+  final jwt = JWT(payload);
+
+  // Sign the JWT with a secret key
+  final token = jwt.sign(SecretKey(SECRET));
+
+  return token;
+}
+
+
+Map<String, dynamic>? parseJwt(String token) {
+  try {
+    // Verify the token and decode its payload
+    final jwt = JWT.verify(token, SecretKey(SECRET));
+
+    // Return the payload
+    return jwt.payload as Map<String, dynamic>;
+  } on JWTExpiredException {
+    print('jwt expired');
+} on JWTException  catch (ex) {
+    print('Error verifying JWT: $ex');
+  }
+  return null;
+}
