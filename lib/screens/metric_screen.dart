@@ -68,7 +68,10 @@ class _MetricScreenState extends State<MetricScreen> {
             stream: _actuatorsStream,
             builder: (context, actuatorSnapshot) {
               if (actuatorSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                    child: LinearProgressIndicator(
+                        backgroundColor: backgroundColorTertiary,
+                    ));
               } else if (actuatorSnapshot.hasError) {
                 return Center(child: Text('Error: ${actuatorSnapshot.error}'));
               } else
@@ -80,8 +83,8 @@ class _MetricScreenState extends State<MetricScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    const Text('Actuators', style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(' Actuators', style: TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold, color: backgroundColorTertiary)),
                     const SizedBox(height: 10),
                     ...actuators.map((actuator) =>
                         _buildListTile(actuator.name,
@@ -95,7 +98,10 @@ class _MetricScreenState extends State<MetricScreen> {
             stream: _triggersStream,
             builder: (context, triggerSnapshot) {
               if (triggerSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                    child: LinearProgressIndicator(
+                      backgroundColor: backgroundColorTertiary,
+                    ));
               } else if (triggerSnapshot.hasError) {
                 return Center(child: Text('Error: ${triggerSnapshot.error}'));
               } else
@@ -107,8 +113,8 @@ class _MetricScreenState extends State<MetricScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    const Text('Triggers', style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(' Triggers', style: TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold, color: backgroundColorTertiary)),
                     const SizedBox(height: 10),
                     ...triggers.map((trigger) =>
                         _buildListTile(trigger.name,
@@ -128,7 +134,7 @@ class _MetricScreenState extends State<MetricScreen> {
       margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
-        color: backgroundColorTertiary, // Change color as needed
+        color: backgroundColorTertiary,
       ),
       child: ListTile(
         title: Text(title),

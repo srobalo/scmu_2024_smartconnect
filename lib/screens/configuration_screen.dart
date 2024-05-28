@@ -33,28 +33,24 @@ class ConfigurationScreen extends StatelessWidget {
             appBar: AppBar(
               title: const Text('Configuration'),
             ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        TestPanel(context: context),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 120,
-                    child: WifiInfoWidget(),
-                  ),
-                  Text(
-                    '📱 Version: ${packageInfo.version}     Last Updated: ${DateFormat('dd-MM-yyyy').format(DateTime.now())}',
-                    textAlign: TextAlign.center,
+            body:
+                SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      TestPanel(context: context),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 120,
+                        child: WifiInfoWidget(),
+                      ),
+                  Center(
+                    child:
+                    Text(
+                        '📱 Version: ${packageInfo.version}     Last Updated: ${DateFormat('dd-MM-yyyy').format(DateTime.now())}',
+                        textAlign: TextAlign.center,
+                      ),
                   ),
                 ],
               ),
@@ -81,7 +77,7 @@ class TestPanel extends StatelessWidget {
           onPressed: () async {
             await _requestPermissions(context);
           },
-          child: const Text('Request Permissions'),
+          child: const Text('SHASM Permissions'),
         ),
         ElevatedButton(
           onPressed: () async {
@@ -107,7 +103,8 @@ class TestPanel extends StatelessWidget {
           },
           child: const Text('Test Browser'),
         ),
-        const QRCodeGeneratorWidget(text: "Just a QRCode Test, probably to associate users to an Owner")
+        const QRCodeGeneratorWidget(text: "Just a QRCode Test, probably to associate users to an Owner"),
+
       ],
     );
   }
