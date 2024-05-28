@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
+import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
+import 'package:scmu_2024_smartconnect/widgets/qrcode_generator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../objects/device.dart';
 import '../utils/excuses.dart';
@@ -41,36 +43,7 @@ class ConfigurationScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            await _requestPermissions();
-                          },
-                          child: const Text('Request Permissions'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            await _requestNotificationTest();
-                          },
-                          child: const Text('Test Notification'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            await _delayedNotification();
-                          },
-                          child: const Text('Test Delayed Notification'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            await _requestDatabaseTest();
-                          },
-                          child: const Text('Test Notification Database'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            await _requestBrowserTest();
-                          },
-                          child: const Text('Test Browser'),
-                        ),
+                        TestPanel(context: context),
                       ],
                     ),
                   ),
@@ -91,19 +64,103 @@ class ConfigurationScreen extends StatelessWidget {
       },
     );
   }
+}
 
-  Future<void> _requestPermissions() async {
+class TestPanel extends StatelessWidget {
+  final BuildContext context;
+
+  const TestPanel({Key? key, required this.context}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () async {
+            await _requestPermissions(context);
+          },
+          child: const Text('Request Permissions'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            await _requestNotificationTest();
+          },
+          child: const Text('Test Notification'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            await _delayedNotification();
+          },
+          child: const Text('Test Delayed Notification'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            await _requestDatabaseTest();
+          },
+          child: const Text('Test Notification Database'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            await _requestBrowserTest();
+          },
+          child: const Text('Test Browser'),
+        ),
+        const QRCodeGeneratorWidget(text: "Just a QRCode Test, probably to associate users to an Owner")
+      ],
+    );
+  }
+
+
+  Future<void> _requestPermissions(BuildContext ctx) async {
     final status = await Permission.location.request();
     if (status.isGranted) {
-      // GPS permission granted
       print('Location permission granted');
+      NotificationToast.showToast(ctx, 'Location permission is granted');
     } else {
-      // GPS permission denied
       print('Location permission denied');
+      NotificationToast.showToast(ctx, 'Location permission is denied');
       if (status.isPermanentlyDenied) {
-        // The user opted to never again see the permission request dialog for this
-        // app. The only way to change the permission's status now is to let the
-        // user manually enable it in the system settings.
+        openAppSettings();
+      }
+    }
+
+    // Request notification permission
+    final notificationStatus = await Permission.notification.request();
+    if (notificationStatus.isGranted) {
+      print('Notification permission granted');
+      NotificationToast.showToast(ctx, 'Notification permission is granted');
+    } else {
+      print('Notification permission denied');
+      NotificationToast.showToast(ctx, 'Notification permission is denied');
+      if (notificationStatus.isPermanentlyDenied) {
+        openAppSettings();
+      }
+    }
+
+    // Request phone permission
+    final phoneStatus = await Permission.phone.request();
+    if (phoneStatus.isGranted) {
+      print('Phone permission granted');
+      NotificationToast.showToast(ctx, 'Phone permission is granted');
+    } else {
+      print('Phone permission denied');
+      NotificationToast.showToast(ctx, 'Phone permission is denied');
+      if (phoneStatus.isPermanentlyDenied) {
+        openAppSettings();
+      }
+    }
+
+    // Request Bluetooth permission
+    final bluetoothStatus = await Permission.bluetooth.request();
+    if (bluetoothStatus.isGranted) {
+      print('Bluetooth permission granted');
+      NotificationToast.showToast(ctx, 'Bluetooth permission is granted');
+    } else {
+      print('Bluetooth permission denied');
+      NotificationToast.showToast(ctx, 'Bluetooth permission is denied');
+      if (bluetoothStatus.isPermanentlyDenied) {
         openAppSettings();
       }
     }

@@ -75,8 +75,7 @@ class _MetricScreenState extends State<MetricScreen> {
               if (!actuatorSnapshot.hasData || actuatorSnapshot.data!.isEmpty) {
                 return const Center(child: Text('No actuators available'));
               } else {
-                List<Actuator> actuators = actuatorSnapshot.data!;
-                cacheActuators = actuators;
+                List<Actuator> actuators = actuatorSnapshot.data ?? cacheActuators;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -103,8 +102,7 @@ class _MetricScreenState extends State<MetricScreen> {
               if (!triggerSnapshot.hasData || triggerSnapshot.data!.isEmpty) {
                 return const Center(child: Text('No triggers available'));
               } else {
-                List<Trigger> triggers = triggerSnapshot.data!;
-                cacheTriggers = triggers;
+                List<Trigger> triggers = triggerSnapshot.data ?? cacheTriggers;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
