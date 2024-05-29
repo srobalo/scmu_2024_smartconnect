@@ -192,7 +192,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                         vertical: 2.0, horizontal: 4.0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
-                      color: backgroundColorTertiary, // Change color as needed
+                      color: backgroundColorTertiary,
                     ),
                     child: Stack(
                       children: [

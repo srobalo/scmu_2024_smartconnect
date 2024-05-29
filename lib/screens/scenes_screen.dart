@@ -23,6 +23,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
   Map<String, bool> sceneActive = {};
   List<Scene> scenes = []; // Hold scenes after fetching
 
+
   @override
   void initState() {
     super.initState();
@@ -85,51 +86,73 @@ class _ScenesScreenState extends State<ScenesScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text("No scenes available"));
-          } else {
+    } else {
             final scenes = snapshot.data!;
             return ListView.builder(
-              itemCount: scenes.length,
+              itemCount: scenes.length + 1,
+              // Add one to the item count for the transparent padding
               itemBuilder: (context, index) {
-                final scene = scenes[index];
-                return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    color: backgroundColorTertiary,
-                  ),
-                  child: ListTile(
-                    leading: Icon(Icons.lightbulb_outline, color: backgroundColorSecondary),
-                    title: Text(scene.name),
-                    subtitle: Text('Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Transform.scale(
-                          scale: 0.8,
-                          child: Switch(
-                            value: sceneActive[scene.name] ?? false,
-                            onChanged: (bool value) {
-                              setState(() {
-                                sceneActive[scene.name] = value;
-                              });
-                              print('Scene ${scene.actions[0].command} is now ${value ? 'active' : 'inactive'}');
-                              sendCommandToESP(scene.triggers[0].command, scene.actions[0].command, scene.name, value ? "on" : "off");
+                if (index == scenes.length) {
+                  // This is the transparent padding element
+                  return Container(
+                    height: 80.0, // Adjust height as needed
+                    color: Colors.transparent,
+                  );
+                } else {
+                  final scene = scenes[index];
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 2.0, horizontal: 4.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: backgroundColorTertiary,
+                    ),
+                    child: ListTile(
+                      leading: Icon(Icons.lightbulb_outline,
+                          color: backgroundColorSecondary),
+                      title: Text(scene.name),
+                      subtitle: Text('Triggers: ${scene.triggers
+                          .length}, Actions: ${scene.actions.length}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Transform.scale(
+                            scale: 0.8,
+                            child: Switch(
+                              value: sceneActive[scene.name] ?? false,
+                              activeColor: activeColor,
+                              activeTrackColor: Colors.white,
+                              inactiveThumbColor: backgroundColorSecondary,
+                              inactiveTrackColor: Colors.white,
+                              onChanged: (bool value) {
+                                setState(() {
+                                  sceneActive[scene.name] = value;
+                                });
+                                print('Scene ${scene.actions[0]
+                                    .command} is now ${value
+                                    ? 'active'
+                                    : 'inactive'}');
+                                sendCommandToESP(scene.triggers[0].command,
+                                    scene.actions[0].command, scene.name,
+                                    value ? "on" : "off");
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                                Icons.delete, color: Colors.black54),
+                            onPressed: () {
+                              _deleteSceneFromFirebase(scene);
                             },
                           ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            _deleteSceneFromFirebase(scene);
-                          },
-                        ),
-                      ],
+                        ],
+                      ),
+                      onTap: () {
+                        // Optionally, navigate to a detailed view of the scene
+                      },
                     ),
-                    onTap: () {
-                      // Optionally, navigate to a detailed view of the scene
-                    },
-                  ),
-                );
+                  );
+                }
               },
             );
           }
@@ -144,8 +167,8 @@ class _ScenesScreenState extends State<ScenesScreen> {
             ),
           );
         },
+        backgroundColor: backgroundColorTertiary,
         child: const Icon(Icons.add),
-        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
   }
