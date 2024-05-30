@@ -5,36 +5,16 @@
 const char* ssid = "Vodafone-A4638F";
 const char* password = "MEV8s2EbE7";
 
-WiFiServer server(80);
 Servo myServo;
 
-int ledPin = 21;
-int photoResistorPin = 34;
-static const int servoPin = 13;
+// int ledPin = 21;
+// int photoResistorPin = 34;
+// static const int servoPin = 13;
 
 bool lightSceneEnabled = false; // Flag to control light scene activation
 
-void setup() {
-    Serial.begin(9600);
-    pinMode(ledPin, OUTPUT);
-    pinMode(photoResistorPin, INPUT);
-    myServo.attach(servoPin);
 
-    WiFi.begin(ssid, password);
-    Serial.println("Connecting to WiFi");
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println("\nWiFi connected");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-
-    server.begin();
-    Serial.println("Server started");
-}
-
-void loop() {
+void scene() {
     WiFiClient client = server.available();
     if (client) {
         Serial.println("New Client Connected");

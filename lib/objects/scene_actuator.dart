@@ -7,6 +7,7 @@ class Actuator {
   final String device_id;
   final String name;
   final int counter;
+  bool state;
 
   Actuator({
     required this.command,
@@ -14,6 +15,7 @@ class Actuator {
     required this.device_id,
     required this.name,
     required this.counter,
+    required this.state,
   });
 
   factory Actuator.fromFirestore(DocumentSnapshot doc) {
@@ -24,6 +26,7 @@ class Actuator {
       device_id: data['device_id'] ?? "",
       name: data['name'] ?? 'Unknown',
       counter: data['counter'] ?? 0,
+      state: data['state'] ?? false,
     );
   }
 
@@ -34,6 +37,7 @@ class Actuator {
       device_id: map['device_id'] ?? "",
       name: map['name'] ?? 'Unknown',
       counter: map['counter'] ?? 0,
+      state: map['state'] ?? false,
     );
   }
 

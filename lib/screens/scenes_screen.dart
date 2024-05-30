@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/screens/scene_configuration_screen.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/objects/scene.dart';
-import 'package:scmu_2024_smartconnect/objects/scene_trigger.dart';
-import 'package:scmu_2024_smartconnect/objects/scene_actuator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 import '../defaults/default_values.dart';
@@ -11,9 +9,9 @@ import 'package:http/http.dart' as http;
 
 
 class ScenesScreen extends StatefulWidget {
-  final List<Device> devices;
+  //final List<Device> devices;
 
-  const ScenesScreen({Key? key, required this.devices}) : super(key: key);
+  const ScenesScreen({Key? key}) : super(key: key);
 
   @override
   _ScenesScreenState createState() => _ScenesScreenState();
@@ -163,7 +161,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SceneConfigurationScreen(devices: widget.devices),
+              builder: (context) => SceneConfigurationScreen(),
             ),
           );
         },

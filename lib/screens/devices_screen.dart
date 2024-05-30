@@ -8,7 +8,8 @@ import 'package:scmu_2024_smartconnect/three_state_switch.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import '../defaults/default_values.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../objects/scene_actuator.dart';
 import '../utils/jwt.dart';
 import 'add_device_screen.dart';
 
@@ -22,95 +23,48 @@ class DevicesScreen extends StatefulWidget {
 class _DevicesScreenState extends State<DevicesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<Device> devices = [
-    Device(
-        userid: "1",
-        name: "Outside Lights",
-        domain: "Garden",
-        icon: "assets/smart_bulb.png",
-        state: DeviceState.off,
-        commandId: "1",
-        ip: '172.20.10.13',
-    mac:'1'),
-    Device(
-        userid: "2",
-        name: "House Lights",
-        domain: "Home",
-        icon: "assets/smart_bulb.png",
-        state: DeviceState.off,
-        commandId: "2",
-        ip: '172.20.10.13',
-    mac:'1'),
-    Device(
-        userid: "3",
-        name: "Backdoor",
-        domain: "Home Door",
-        icon: "assets/smart_lock.png",
-        state: DeviceState.off,
-        commandId: "3",
-        ip: '172.20.10.13',
-    mac:'1'),
-    Device(
-        userid: "4",
-        name: "Garage Door",
-        domain: "Garage",
-        icon: "assets/smart_garage.png",
-        state: DeviceState.off,
-        commandId: "4",
-        ip: '172.20.10.13',
-    mac:'1'),
-    Device(
-        userid: "5",
-        name: "House Humidity",
-        domain: "Home Environment",
-        icon: "assets/smart_sensor_humidity.png",
-        state: DeviceState.off,
-        commandId: "5",
-        ip: '172.20.10.13',
-    mac:'1'),
-  ]; //for testing
+  List<Actuator> devices = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-      // Print all device names and their state
-
+    fetchDevices();
   }
 
-  Future<List<Device>> initDevices() async {
-    String? cap = await MyPreferences.loadData<String?>('capabilities');
-    if (cap == null) {
-      return [];
-    } else {
-      Map<String, dynamic> capabilities = parseJwt(cap) ?? {};
-      if (cap.isEmpty)
-        return [];
-      else {
-        String owner = capabilities['owner'];
-        String id = capabilities['id'];
-        String mac = capabilities['mac'];
-        List<Device> device=[];
-        if (owner != id) {
-          Capabilities cap = capabilities['cap'];
+  void fetchDevices() async {
+    var devicesFromDb = await initDevices();
+    setState(() {
+      devices = devicesFromDb;
+    });
+  }
 
-          for (String action in cap.actions) {
-            print(action);
-            // device.add( FirestoreService().getActionFromDevice(mac, action));
+  Future<List<Actuator>> initDevices() async {
+    List<Actuator> fetchedDevices = [];
 
-          }
-          for (String trigger in cap.triggers) {
-            print(trigger);
-            FirestoreService().getTriggerFromDevice(mac, trigger);
-          }
-          return device;
-        }else { //obter todas as actions/triggers;
-          return [];
-        }
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('actions').get();
+
+      for (var doc in snapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        Actuator device = Actuator(
+          command: data['command'] ?? '', // Adjust field names based on your Firestore
+          id_action: data['id_action'] ?? 0,
+          device_id: data['device_id'] ?? '',
+          counter: data['counter'] ?? '',
+          name: data['name'] ?? '',
+          state: data['state'] ?? false,
+        );
+        fetchedDevices.add(device);
       }
+
+      return fetchedDevices;
+    } catch (e) {
+      print("Failed to fetch devices: $e");
+      return []; // Return an empty list on error
     }
   }
+
   void sendCommand(
       String deviceId, String commandAction, String deviceIp) async {
     try {
@@ -179,7 +133,7 @@ class _DevicesScreenState extends State<DevicesScreen>
         controller: _tabController,
         children: [
           _buildDevicesTab(),
-          ScenesScreen(devices: devices),
+           ScenesScreen(),
         ],
       ),
     );
@@ -200,7 +154,7 @@ class _DevicesScreenState extends State<DevicesScreen>
               itemBuilder: (context, index) {
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: AssetImage(devices[index].icon),
+                   // backgroundImage: AssetImage(devices[index].name),
                     backgroundColor: backgroundColorTertiary,
                   ),
                   title: Text(
@@ -208,7 +162,7 @@ class _DevicesScreenState extends State<DevicesScreen>
                     style: TextStyle(color: textColorDarkTheme),
                   ),
                   subtitle: Text(
-                    devices[index].domain,
+                    devices[index].name,
                     style: TextStyle(color: textColorDarkThemeSecondary),
                   ),
                   trailing: SizedBox(
@@ -218,15 +172,15 @@ class _DevicesScreenState extends State<DevicesScreen>
                       onChanged: (newState) {
                         setState(() {
                           devices[index].state = newState;
-                          if (devices[index].commandId == null) {
+                          if (devices[index].command == null) {
                             print(
                                 "Error: No commandId for device ${devices[index].name}");
                             return; // Prevent further action if commandId is null
                           }else {
                             String commandAction =
-                            (newState == DeviceState.on) ? "on" : "off";
-                            sendCommand(devices[index].commandId ?? '1', commandAction,
-                                devices[index].ip);
+                            (newState == devices[index].state) ? "on" : "off";
+                            sendCommand(devices[index].command ?? '1', commandAction,
+                                devices[index].device_id ?? '1');
                             print(
                                 "Command sent for ${devices[index]
                                     .name} with action $commandAction");
