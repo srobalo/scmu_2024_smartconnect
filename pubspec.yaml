@@ -53,6 +53,7 @@ dependencies:
   url_launcher: ^6.2.6
   rxdart: ^0.27.7
   dart_jsonwebtoken: ^2.14.0
+  native_qr: ^0.0.3
 
 dev_dependencies:
   flutter_test:

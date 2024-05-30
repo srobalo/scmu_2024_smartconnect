@@ -25,7 +25,7 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
     FirebaseFirestore db = FirebaseFirestore.instance;
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot =
-          await _firestoreService.collection('actions').get();
+          await _firestoreService.getAllActions().collection('actions').get();
       print("Documents fetched: ${snapshot.docs.length}");
 
       List<Actuator> fetchedActuator = snapshot.docs.map((doc) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:scmu_2024_smartconnect/objects/capabilities.dart';
 import 'package:wifi_scan/wifi_scan.dart';
@@ -222,15 +223,29 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     );
   }
 
+  Future<void> _openBrowser(String target) async {
+    String toOpen = 'http//$target:$devicePort';
+    final Uri url = Uri.parse(toOpen);
+    NotificationToast.showToast(context, 'Connecting to $toOpen');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      NotificationToast.showToast(context, 'Failed to connect $url');
+    }
+  }
+
   // Função para abrir a URL no navegador do dispositivo
   _launchURL(String ssid) async {
-    String url = (await NetworkInfo().getWifiGatewayIP()) ?? "192.168.1.1";
+
+    await _openBrowser(deviceGateway);
+    sleep(const Duration(seconds: 5));
+
+    String url = (await NetworkInfo().getWifiGatewayIP()) ?? deviceGateway;
+
     // Uri ip = Uri.parse("$url:$devicePort");
-    final Uri ip = Uri.parse(url);
+    final Uri ip = Uri.parse(deviceGateway);
     if (!await launchUrl(ip, mode: LaunchMode.externalApplication)) {
       NotificationToast.showToast(context, 'Failed to connect $ip');
     } else {
-      final response = await http.get(Uri.parse('http://$url/mac'));
+      final response = await http.get(Uri.parse('http://$ip/mac'));
       final id = await MyPreferences.loadData<String>("USER_ID");
       if (response.statusCode == 200) {
         setState(() async {

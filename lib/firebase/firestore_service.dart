@@ -270,6 +270,16 @@ class FirestoreService {
     }
   }
 
+  Future<List<QueryDocumentSnapshot>> getAllActions() async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("actions").get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
   Future<DocumentSnapshot?> getUserFromId(String userid) async {
     try {
       QuerySnapshot querySnapshot = await _firestore.collection("users").where("id", isEqualTo: userid).get();
