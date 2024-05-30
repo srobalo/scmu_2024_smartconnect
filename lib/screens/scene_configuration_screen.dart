@@ -13,9 +13,9 @@ import '../objects/user.dart';
 import '../screens/create_custom_notification.dart';
 
 class SceneConfigurationScreen extends StatefulWidget {
-  final List<Device> devices;
+  //final List<Device> devices;
 
-  const SceneConfigurationScreen({Key? key, required this.devices}) : super(key: key);
+  const SceneConfigurationScreen({Key? key}) : super(key: key);
 
   @override
   _SceneConfigurationScreenState createState() => _SceneConfigurationScreenState();

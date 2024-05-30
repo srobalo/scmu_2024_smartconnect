@@ -1,11 +1,13 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
 
 import 'defaults/default_values.dart';
 
 class ThreeStateSwitch extends StatefulWidget {
-  final ValueChanged<DeviceState> onChanged;
-  final DeviceState value;
+  final ValueChanged<bool> onChanged;
+  final bool value;
 
   const ThreeStateSwitch({
     Key? key,
@@ -18,7 +20,7 @@ class ThreeStateSwitch extends StatefulWidget {
 }
 
 class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
-  late DeviceState _value;
+  late bool _value;
 
   @override
   void initState() {
@@ -31,14 +33,13 @@ class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildButton(DeviceState.on, 'ON', Colors.green),
-        _buildButton(DeviceState.off, 'OFF', Colors.red),
-        _buildButton(DeviceState.auto, 'Auto', Colors.blue),
+        _buildButton(true, 'ON', Colors.green),
+        _buildButton(false, 'OFF', Colors.red),
       ],
     );
   }
 
-  Widget _buildButton(DeviceState state, String label, Color color) {
+  Widget _buildButton(bool state, String label, Color color) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 1), // Adjust the spacing as needed
       child: InkWell(
@@ -60,7 +61,7 @@ class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
     );
   }
 
-  void _updateValue(DeviceState newValue) {
+  void _updateValue(bool newValue) {
     setState(() {
       _value = newValue;
       widget.onChanged(newValue);
