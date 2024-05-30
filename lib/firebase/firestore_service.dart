@@ -259,10 +259,10 @@ class FirestoreService {
       return [];
     }
   }
-  Future<List<QueryDocumentSnapshot>> getActionFromDevice(String mac,String action) async {
+  Future<List<QueryDocumentSnapshot>> getAction(String action) async {
     try {
       QuerySnapshot querySnapshot = await _firestore.collection("actions")
-          .where("device_id", isEqualTo: mac).where("command", isEqualTo: action).get();
+          .where("command", isEqualTo: action).get();
       return querySnapshot.docs;
     } catch (e) {
       print("Error retrieving documents: $e");
@@ -328,7 +328,9 @@ class FirestoreService {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("devices")
           .where("mac", isEqualTo: device.mac).get();
       if (querySnapshot.docs.isNotEmpty) {
-          return querySnapshot.docs.map((e) => Device.fromMap(e.data() as Map<String,dynamic>)).toList()[0];
+        Device d = querySnapshot.docs.map((e) => Device.fromMap(e.data() as Map<String,dynamic>)).toList()[0];
+        // Device newDevice = Device();
+        return d;
       }else {
         DocumentReference documentReference = await FirebaseFirestore.instance
             .collection("devices").add(device.toMap());

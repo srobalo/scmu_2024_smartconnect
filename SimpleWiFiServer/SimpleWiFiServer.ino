@@ -1,10 +1,6 @@
 
-
-
 #include <ESP32Firebase.h>
 #include <WiFiManager.h>
-
-
 
 const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app";
 //const char* firebaseAuth  = "QbSDiFbhpZLFahaXUakYKmF2KCtD9DvZgpCutLw8";
@@ -16,6 +12,7 @@ int ledPin = 21;
 int photoResistorPin = 34;
 static const int servoPin = 13;
 String MAC;
+IPAddress IP;
 //Servo servo1;
 void setup() {
   Serial.begin(9600);
@@ -50,7 +47,7 @@ void setup() {
   firebase.setFloat("Example/setFloat", 45.32);
 
   MAC = WiFi.macAddress();
-
+  IP = WiFi.localIP();
   server.begin();
 
 }
@@ -83,11 +80,8 @@ void loop() {
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
             client.println();
-            if (currentLine.startsWith("GET /mac")) {
-              client.println(MAC);
-            } else {
               client.println("Backdoor control");
-            }
+            
             // the content of the HTTP response follows the header:
             //client.print("Click <a href=\"/H\">here</a> 180.<br>");
             //client.print("Click <a href=\"/L\">here</a> 0<br>");
@@ -97,7 +91,14 @@ void loop() {
             // break out of the while loop:
             break;
           } else {  // if you got a newline, then clear currentLine:
-            if (currentLine.startsWith("GET /3/on")) {
+             if (currentLine.startsWith("GET /mac")) {
+              client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println();
+              client.println(MAC);
+             }else if(currentLine.startsWith("GET /ip")){
+
+             }else if (currentLine.startsWith("GET /3/on")) {
               Serial.println("Turning Backdoor ON (Mover o servo)");
               // Add code to perform the action
             } else if (currentLine.startsWith("GET /3/off")) {
