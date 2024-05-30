@@ -15,6 +15,8 @@ import 'package:scmu_2024_smartconnect/utils/wifi_info.dart';
 import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
+import '../widgets/permission_widget.dart';
+
 class ConfigurationScreen extends StatelessWidget {
   const ConfigurationScreen({Key? key}) : super(key: key);
 
@@ -73,6 +75,7 @@ class TestPanel extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        const PermissionStatusWidget(),
         ElevatedButton(
           onPressed: () async {
             await _requestPermissions(context);
@@ -114,10 +117,8 @@ class TestPanel extends StatelessWidget {
     final status = await Permission.location.request();
     if (status.isGranted) {
       print('Location permission granted');
-      NotificationToast.showToast(ctx, 'Location permission is granted');
     } else {
       print('Location permission denied');
-      NotificationToast.showToast(ctx, 'Location permission is denied');
       if (status.isPermanentlyDenied) {
         openAppSettings();
       }
@@ -127,10 +128,8 @@ class TestPanel extends StatelessWidget {
     final notificationStatus = await Permission.notification.request();
     if (notificationStatus.isGranted) {
       print('Notification permission granted');
-      NotificationToast.showToast(ctx, 'Notification permission is granted');
     } else {
       print('Notification permission denied');
-      NotificationToast.showToast(ctx, 'Notification permission is denied');
       if (notificationStatus.isPermanentlyDenied) {
         openAppSettings();
       }
@@ -140,10 +139,8 @@ class TestPanel extends StatelessWidget {
     final phoneStatus = await Permission.phone.request();
     if (phoneStatus.isGranted) {
       print('Phone permission granted');
-      NotificationToast.showToast(ctx, 'Phone permission is granted');
     } else {
       print('Phone permission denied');
-      NotificationToast.showToast(ctx, 'Phone permission is denied');
       if (phoneStatus.isPermanentlyDenied) {
         openAppSettings();
       }
@@ -153,10 +150,8 @@ class TestPanel extends StatelessWidget {
     final bluetoothStatus = await Permission.bluetooth.request();
     if (bluetoothStatus.isGranted) {
       print('Bluetooth permission granted');
-      NotificationToast.showToast(ctx, 'Bluetooth permission is granted');
     } else {
       print('Bluetooth permission denied');
-      NotificationToast.showToast(ctx, 'Bluetooth permission is denied');
       if (bluetoothStatus.isPermanentlyDenied) {
         openAppSettings();
       }
