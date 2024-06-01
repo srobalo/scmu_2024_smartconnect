@@ -42,6 +42,17 @@ class TheUser {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'email': email,
+      'firstname': firstname,
+      'lastname': lastname,
+      'username': username,
+      'timestamp': timestamp,
+      'imgurl':imgurl
+    };
+  }
   static TheUser fromFirestoreDoc(DocumentSnapshot<Object?> doc) {
     final data = doc.data() as Map<String, dynamic>;
     final String id = data['id'];

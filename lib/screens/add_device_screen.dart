@@ -241,7 +241,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     String url = (await NetworkInfo().getWifiGatewayIP()) ?? deviceGateway;
 
     // Uri ip = Uri.parse("$url:$devicePort");
-    final Uri ip = Uri.parse(deviceGateway);
+    final Uri ip = Uri.parse("http://$deviceGateway");
     if (!await launchUrl(ip, mode: LaunchMode.externalApplication)) {
       NotificationToast.showToast(context, 'Failed to connect $ip');
     } else {

@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../objects/scene_actuator.dart';
 import '../utils/jwt.dart';
+import '../widgets/createUser_widget.dart';
 import 'add_device_screen.dart';
 
 class DevicesScreen extends StatefulWidget {
@@ -204,26 +205,7 @@ class _DevicesScreenState extends State<DevicesScreen>
                     context: context,
                     barrierDismissible: false, // user must tap button!
                     builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('AlertDialog Title'),
-                        content: const SingleChildScrollView(
-                          child: ListBody(
-                            children: <Widget>[
-                              Text('This is a demo alert dialog.'),
-                              Text(
-                                  'Would you like to approve of this message?'),
-                            ],
-                          ),
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            child: const Text('Approve'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      );
+                      return CreateUserWidget();
                     },
                   );
                 },

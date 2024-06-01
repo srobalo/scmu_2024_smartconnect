@@ -5,6 +5,7 @@ import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
 import 'package:scmu_2024_smartconnect/objects/scene_actuator.dart';
 
 import '../objects/user.dart';
+import '../utils/my_preferences.dart';
 
 class CreateUserWidget extends StatefulWidget {
   const CreateUserWidget({super.key});
@@ -20,15 +21,46 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
   TheUser? _selectedUser;
   Actuator? _selectedActuator;
 
+
+  @override
+  void initState() {
+
+    super.initState();
+    fetchActuatorsFromFirestore();
+    fetchUsersFromFirestore();
+  }
+  Future<void> fetchUsersFromFirestore() async {
+    print("Fetching users from Firestore...");
+    final id = await MyPreferences.loadData<String>("USER_ID");
+    try {
+      List<DocumentSnapshot> snapshot = await _firestoreService.getAllDocuments("users");
+      print("Documents fetched: ${snapshot.length}");
+
+      List<TheUser> fetchedUsers = snapshot.map((doc) {
+        print("Processing document: ${doc.data()}");
+        return TheUser.fromFirestoreDoc(doc);
+      }).toList();
+      fetchedUsers.removeWhere((element) => element.id ==id);
+      setState(() {
+        users = fetchedUsers;
+      });
+
+    //   print("Fetched Users:");
+    //   for (TheUser user in users) {
+    //     print(user.toMap());
+    //   }
+    } catch (e) {
+      print('Error fetching users from Firestore: $e');
+     }
+  }
+
   Future<void> fetchActuatorsFromFirestore() async {
     print("Fetching actuators from Firestore...");
-    FirebaseFirestore db = FirebaseFirestore.instance;
     try {
-      QuerySnapshot<Map<String, dynamic>> snapshot =
-          await _firestoreService.getAllActions().collection('actions').get();
-      print("Documents fetched: ${snapshot.docs.length}");
+      List<QueryDocumentSnapshot> snapshot = await _firestoreService.getAllActions();
+      print("Documents fetched: ${snapshot.length}");
 
-      List<Actuator> fetchedActuator = snapshot.docs.map((doc) {
+      List<Actuator> fetchedActuator = snapshot.map((doc) {
         print("Processing document: ${doc.data()}");
         return Actuator.fromFirestore(doc);
       }).toList();
@@ -37,13 +69,17 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
         actuators = fetchedActuator;
       });
 
-      print("Fetched actuator:");
-      for (Actuator actuator in actuators) {
-        print(actuator.toMap());
-      }
+      // print("Fetched actuator:");
+      // for (Actuator actuator in actuators) {
+      //   print(actuator.toMap());
+      // }
     } catch (e) {
       print('Error fetching actuators from Firestore: $e');
     }
+  }
+
+  Future<void> addCapabilities() async {
+
   }
 
   @override
@@ -65,7 +101,7 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
               items: users.map<DropdownMenuItem<TheUser>>((TheUser user) {
                 return DropdownMenuItem<TheUser>(
                   value: user,
-                  child: Text(user.toString()),
+                  child: Text(user.email),
                 );
               }).toList(),
             ),
@@ -81,7 +117,7 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
               items: actuators.map<DropdownMenuItem<Actuator>>((Actuator actuator) {
                 return DropdownMenuItem<Actuator>(
                   value: actuator,
-                  child: Text(actuator.toString()),
+                  child: Text(actuator.name),
                 );
               }).toList(),
             ),
@@ -90,11 +126,20 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
       ),
       actions: <Widget>[
         TextButton(
+          child: Text('Cancel'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
           child: Text('Approve'),
           onPressed: () {
             if (_selectedUser != null || _selectedActuator != null) {
               // Handle the approval logic here
 
+
+
+              Navigator.of(context).pop();
             } else {
               // Show a message or handle the case where no user is selected
               ScaffoldMessenger.of(context).showSnackBar(
