@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
-import 'package:scmu_2024_smartconnect/objects/device.dart';
+
 import 'package:scmu_2024_smartconnect/screens/scenes_screen.dart';
 import 'package:scmu_2024_smartconnect/three_state_switch.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
@@ -86,7 +85,7 @@ class _DevicesScreenState extends State<DevicesScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Device & Scenes'),
+        title: const Text('Actions & Scenes'),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.black,
@@ -101,7 +100,7 @@ class _DevicesScreenState extends State<DevicesScreen>
                   ),
                   SizedBox(width: 8),
                   Text(
-                    'Devices',
+                    'Actuators',
                     style: TextStyle(
                       color: Colors.black,
                     ),
@@ -146,7 +145,7 @@ class _DevicesScreenState extends State<DevicesScreen>
       devices.isEmpty
           ? const Center(
               child: Text(
-                'No devices connected',
+                'No device connected',
                 style: TextStyle(fontSize: 20.0),
               ),
             )
@@ -211,8 +210,8 @@ class _DevicesScreenState extends State<DevicesScreen>
                         },
                       );
                     },
-                child: const Icon(Icons.person),
-                )
+                      child: const Icon(Icons.person),
+                    )
               ),
               FloatingActionButton(
                 onPressed: () {

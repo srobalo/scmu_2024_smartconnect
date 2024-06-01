@@ -2,12 +2,15 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
+import 'package:scmu_2024_smartconnect/utils/jwt.dart';
+import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 
 import 'defaults/default_values.dart';
 
 class ThreeStateSwitch extends StatefulWidget {
   final ValueChanged<bool> onChanged;
   final bool value;
+
 
   const ThreeStateSwitch({
     Key? key,
@@ -21,27 +24,32 @@ class ThreeStateSwitch extends StatefulWidget {
 
 class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
   late bool _value;
-
+  bool isOwner = false;
   @override
   void initState() {
     super.initState();
     _value = widget.value;
+    fetchCap();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildButton(true, 'ON', Colors.green),
-        _buildButton(false, 'OFF', Colors.red),
-      ],
-    );
+
+    return Visibility(
+        visible: isOwner,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildButton(true, 'ON', Colors.green),
+            _buildButton(false, 'OFF', Colors.red),
+          ],
+        ));
   }
 
   Widget _buildButton(bool state, String label, Color color) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 1), // Adjust the spacing as needed
+      padding: EdgeInsets.symmetric(horizontal: 1),
+      // Adjust the spacing as needed
       child: InkWell(
         onTap: () {
           _updateValue(state);
@@ -54,13 +62,17 @@ class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
           ),
           child: Text(
             label,
-            style: TextStyle(color: _value == state ? Colors.white : Colors.black),
+            style:
+                TextStyle(color: _value == state ? Colors.white : Colors.black),
           ),
         ),
       ),
     );
   }
-
+  void fetchCap() async {
+    var cap =  await MyPreferences.loadData<String>("capabilities");
+    if(cap != null) isOwner = checkIsOwner(cap);
+  }
   void _updateValue(bool newValue) {
     setState(() {
       _value = newValue;
