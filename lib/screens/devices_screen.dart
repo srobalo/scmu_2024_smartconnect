@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
-import 'package:scmu_2024_smartconnect/objects/capabilities.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/screens/scenes_screen.dart';
 import 'package:scmu_2024_smartconnect/three_state_switch.dart';
@@ -25,6 +24,7 @@ class _DevicesScreenState extends State<DevicesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<Actuator> devices = [];
+  bool isOwner = false;
 
   @override
   void initState() {
@@ -42,10 +42,10 @@ class _DevicesScreenState extends State<DevicesScreen>
 
   Future<List<Actuator>> initDevices() async {
     List<Actuator> fetchedDevices = [];
-
     try {
       final QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('actions').get();
-
+      var cap =  await MyPreferences.loadData<String>("capabilities");
+      if(cap != null) isOwner = checkIsOwner(cap);
       for (var doc in snapshot.docs) {
         var data = doc.data() as Map<String, dynamic>;
         Actuator device = Actuator(
@@ -133,14 +133,14 @@ class _DevicesScreenState extends State<DevicesScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildDevicesTab(),
+          _buildDevicesTab(isOwner),
            ScenesScreen(),
         ],
       ),
     );
   }
 
-  Widget _buildDevicesTab() {
+  Widget _buildDevicesTab(bool isOwner) {
     return Stack(children: [
       // devices = await initDevices();
       devices.isEmpty
@@ -199,23 +199,26 @@ class _DevicesScreenState extends State<DevicesScreen>
           child: Align(
             alignment: Alignment.bottomCenter,
             child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              FloatingActionButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false, // user must tap button!
-                    builder: (BuildContext context) {
-                      return CreateUserWidget();
+              Visibility(
+                  visible: isOwner,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false, // user must tap button!
+                        builder: (BuildContext context) {
+                          return const CreateUserWidget();
+                        },
+                      );
                     },
-                  );
-                },
                 child: const Icon(Icons.person),
+                )
               ),
               FloatingActionButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddDeviceScreen()),
+                    MaterialPageRoute(builder: (context) => const AddDeviceScreen()),
                   );
                 },
                 child: const Icon(Icons.add),

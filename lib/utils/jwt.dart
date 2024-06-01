@@ -29,3 +29,11 @@ Map<String, dynamic>? parseJwt(String token) {
   }
   return null;
 }
+
+bool checkIsOwner(String token){
+  Map<String, dynamic>? map = parseJwt(token);
+  if( map != null){
+    return map['owner'] == map['id'];
+  }
+  return false;
+}

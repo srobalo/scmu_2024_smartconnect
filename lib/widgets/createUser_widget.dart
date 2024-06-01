@@ -5,6 +5,7 @@ import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
 import 'package:scmu_2024_smartconnect/objects/scene_actuator.dart';
 
 import '../objects/user.dart';
+import '../utils/jwt.dart';
 import '../utils/my_preferences.dart';
 
 class CreateUserWidget extends StatefulWidget {
@@ -44,11 +45,6 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
       setState(() {
         users = fetchedUsers;
       });
-
-    //   print("Fetched Users:");
-    //   for (TheUser user in users) {
-    //     print(user.toMap());
-    //   }
     } catch (e) {
       print('Error fetching users from Firestore: $e');
      }
@@ -79,7 +75,23 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
   }
 
   Future<void> addCapabilities() async {
-
+    var cacheCap = await MyPreferences.loadData<String>("capabilities");
+    if( cacheCap != null) {
+      final jwt = parseJwt(cacheCap);
+      if (jwt != null && _selectedActuator != null && _selectedUser != null ) {
+        var mac = jwt['mac'];
+       var result= await _firestoreService.addCapability(_selectedActuator!.command, mac,_selectedUser!.id);
+        if( result){
+          print("Added cap");
+        }else{
+          print("Error adding caps in firestore");
+        }
+      }else{
+        print("Error parsing in Caps");
+      }
+    }else{
+      print("Error adding caps");
+    }
   }
 
   @override
@@ -134,11 +146,9 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
         TextButton(
           child: Text('Approve'),
           onPressed: () {
-            if (_selectedUser != null || _selectedActuator != null) {
+            if (_selectedUser != null && _selectedActuator != null) {
               // Handle the approval logic here
-
-
-
+              addCapabilities();
               Navigator.of(context).pop();
             } else {
               // Show a message or handle the case where no user is selected

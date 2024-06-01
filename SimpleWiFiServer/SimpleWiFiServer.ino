@@ -15,6 +15,7 @@ String MAC;
 IPAddress IP;
 //Servo servo1;
 void setup() {
+  WiFi.mode(WIFI_STA);
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);  // set the LED pin mode
   pinMode(photoResistorPin, INPUT);
@@ -23,7 +24,7 @@ void setup() {
 
   WiFiManager wm;
   wm.resetSettings();
-
+  wm.setConfigPortalTimeout(300);
   if (!wm.autoConnect("SHASM", "password")) {
     Serial.println("Failed to connect");
     ESP.restart();
@@ -97,7 +98,10 @@ void loop() {
             client.println();
               client.println(MAC);
              }else if(currentLine.startsWith("GET /ip")){
-
+              client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println();
+              client.println(IP);
              }else if (currentLine.startsWith("GET /3/on")) {
               Serial.println("Turning Backdoor ON (Mover o servo)");
               // Add code to perform the action

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:scmu_2024_smartconnect/objects/capabilities.dart';
 import 'package:wifi_scan/wifi_scan.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -252,29 +251,29 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           String mac = response.body;
           print('MAC ${mac}');
           Device device = Device(
-            userid: id ?? 'undefined',
+              id: '',
+              ownerId: id ?? 'undefined',
             name: '$id: $ssid',
             domain: 'SHASM',
-            icon: 'assets/smart_bulb.png',
+            // icon: 'assets/smart_bulb.png',
             mac: mac,
             ip: ip.toString(),
-            state: DeviceState.off,
-            commandId: null,
+            // state: DeviceState.off,
             capabilities: {}
           );
          Device? d = await FirestoreService().createDeviceIfNotExists(device);  
          if(  d != null){
-           if(d.userid == id){
+           if(d.ownerId == id){
              final payload= {
-               'owner': d.userid,
+               'owner': d.ownerId,
                'id': id,
                'mac': mac
              };
              MyPreferences.saveData("capabilities", generateJwt(payload: payload));
            }else{
-             Capabilities? p = d.capabilities[id] ;
+             List<String>? p = d.capabilities[id];
              final newPayload = {
-               'owner': d.userid,
+               'owner': d.ownerId,
                'id': id,
                'mac': mac,
                "cap":p
