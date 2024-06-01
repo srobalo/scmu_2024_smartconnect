@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 
 final String SECRET = "SHASM-2024";
 
-String generateJwt({ required Map<String, dynamic> payload}) {
+String generateJwt({required Map<String, dynamic> payload}) {
   // Create a JWT
   final jwt = JWT(payload);
 
@@ -13,7 +13,6 @@ String generateJwt({ required Map<String, dynamic> payload}) {
 
   return token;
 }
-
 
 Map<String, dynamic>? parseJwt(String token) {
   try {
@@ -24,16 +23,26 @@ Map<String, dynamic>? parseJwt(String token) {
     return jwt.payload as Map<String, dynamic>;
   } on JWTExpiredException {
     print('jwt expired');
-} on JWTException  catch (ex) {
+  } on JWTException catch (ex) {
     print('Error verifying JWT: $ex');
   }
   return null;
 }
 
-bool checkIsOwner(String token){
+bool checkIsOwner(String token) {
   Map<String, dynamic>? map = parseJwt(token);
-  if( map != null){
+  if (map != null) {
     return map['owner'] == map['id'];
+  }
+  return false;
+}
+
+bool hasPermission(String token,String command) {
+  Map<String, dynamic>? map = parseJwt(token);
+  if (map != null) {
+    List<String> commands = map['cap'];
+    return map['owner'] == map['id'] || commands.contains(command);
+
   }
   return false;
 }

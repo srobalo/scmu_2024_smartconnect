@@ -10,10 +10,12 @@ import 'defaults/default_values.dart';
 class ThreeStateSwitch extends StatefulWidget {
   final ValueChanged<bool> onChanged;
   final bool value;
+  final String command;
 
 
   const ThreeStateSwitch({
     Key? key,
+    required this.command,
     required this.onChanged,
     required this.value,
   }) : super(key: key);
@@ -24,19 +26,19 @@ class ThreeStateSwitch extends StatefulWidget {
 
 class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
   late bool _value;
-  bool isOwner = false;
+  bool isVisible = false;
   @override
   void initState() {
     super.initState();
     _value = widget.value;
-    fetchCap();
+    fetchCap(widget.command);
   }
 
   @override
   Widget build(BuildContext context) {
 
     return Visibility(
-        visible: isOwner,
+        visible: isVisible,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -69,9 +71,9 @@ class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
       ),
     );
   }
-  void fetchCap() async {
+  void fetchCap(String command) async {
     var cap =  await MyPreferences.loadData<String>("capabilities");
-    if(cap != null) isOwner = checkIsOwner(cap);
+    if(cap != null) isVisible = hasPermission(cap, command);
   }
   void _updateValue(bool newValue) {
     setState(() {

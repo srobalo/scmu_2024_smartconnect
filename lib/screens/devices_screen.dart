@@ -168,6 +168,7 @@ class _DevicesScreenState extends State<DevicesScreen>
                   trailing: SizedBox(
                     width: 162, // Adjust the width as needed
                     child: ThreeStateSwitch(
+                      command: devices[index].command,
                       value: devices[index].state,
                       onChanged: (newState) {
                         setState(() {
