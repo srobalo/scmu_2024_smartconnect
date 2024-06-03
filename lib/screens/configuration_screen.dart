@@ -22,6 +22,7 @@ class ConfigurationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String buildDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
     return FutureBuilder<PackageInfo>(
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
@@ -35,27 +36,29 @@ class ConfigurationScreen extends StatelessWidget {
             appBar: AppBar(
               title: const Text('Configuration'),
             ),
-            body:
-                SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      TestPanel(context: context),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 120,
-                        child: WifiInfoWidget(),
-                      ),
-                  Center(
-                    child:
-                    Text(
-                        '📱 Version: ${packageInfo.version}     Last Updated: ${DateFormat('dd-MM-yyyy').format(DateTime.now())}',
-                        textAlign: TextAlign.center,
-                      ),
+            body: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                TestPanel(context: context),
+                const Spacer(), // Pushes the following widgets to the bottom
+                Center(
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 120,
+                    child: WifiInfoWidget(),
                   ),
-                ],
-              ),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      '📱 Version: ${packageInfo.version}     Last Updated: $buildDate',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         }
@@ -106,8 +109,6 @@ class TestPanel extends StatelessWidget {
           },
           child: const Text('Test Browser'),
         ),
-        const QRCodeGeneratorWidget(text: "Just a QRCode Test, probably to associate users to an Owner"),
-
       ],
     );
   }

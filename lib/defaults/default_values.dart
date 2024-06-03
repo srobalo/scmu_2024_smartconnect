@@ -6,6 +6,8 @@ const int deviceSearchTimerSeconds = 7;
 //
 const String firebaseRealtimeDBUrl = 'https://scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app/';
 //
+const defaultUserImage = "https://friconix.com/png/fi-cnsuxx-user-circle.png";
+//
 Color primaryColor = Colors.blue[900] as Color;
 Color backgroundColor = Colors.blueGrey[900] as Color;
 Color backgroundColorSecondary = Colors.blueGrey[800] as Color;

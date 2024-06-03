@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 
+import '../defaults/default_values.dart';
 import '../objects/user.dart';
 import '../utils/my_preferences.dart';
 
@@ -57,21 +58,22 @@ class RegistrationScreen extends StatelessWidget {
       if (userCredential.user != null) {
         NotificationToast.showToast(context, "Welcome, $firstName $lastName!");
         FirebaseDB f = FirebaseDB();
-        await f.createUser(TheUser(
+        TheUser u = TheUser(
           id: '',
           email: email,
           firstname: firstName,
           lastname: lastName,
           username: username,
-          imgurl: '',
+          imgurl: defaultUserImage,
           timestamp: DateTime.now(),
-        ));
+        );
+        await f.createUser(u);
       }
 
-      FirebaseDB().getUserFromEmail(email).then((value) {
+      await FirebaseDB().getUserFromEmail(email).then((value) async {
         if (value != null) {
           TheUser u = TheUser.fromFirestoreDoc(value);
-          MyPreferences.saveData<String>("USER_ID", u.id);
+          await MyPreferences.saveData<String>("USER_ID", u.id);
           print("User logged in, id:${u.id}");
         } else {
           // Handle the case where value is null
@@ -79,8 +81,8 @@ class RegistrationScreen extends StatelessWidget {
         }
       });
 
-      // Navigate back to previous screen
-      Navigator.pop(context);
+      // Navigate back to root screen
+      Navigator.popUntil(context, ModalRoute.withName('/'));
     } catch (error) {
       String errorMessage = error.toString();
       errorMessage = errorMessage.replaceAllMapped(RegExp(r'\[firebase_auth/.*?\]'), (match) => '');

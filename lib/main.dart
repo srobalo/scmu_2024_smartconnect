@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
-import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/screens/configuration_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/devices_screen.dart';
+import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/metric_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:scmu_2024_smartconnect/screens/registration_screen.dart';
+import 'package:scmu_2024_smartconnect/screens/user_profile_screen.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
+import 'package:scmu_2024_smartconnect/widgets/notification_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/sun_and_moon.dart';
-import 'firebase_options.dart';
-import 'generic_listener.dart';
+import 'package:scmu_2024_smartconnect/widgets/user_welcome_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_widget.dart';
+import 'firebase_options.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
+
+import 'objects/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,12 +56,36 @@ class MyApp extends StatelessWidget {
             bodySmall: TextStyle(color: textColorDarkTheme),
         ),
       ),
-      home: MainPage(),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(builder: (context) => MainPage());
+          case '/login':
+            return MaterialPageRoute(builder: (context) => LoginScreen());
+          case '/configuration':
+            return MaterialPageRoute(builder: (context) => const ConfigurationScreen());
+          case '/register':
+            return MaterialPageRoute(builder: (context) => RegistrationScreen());
+          case '/profile':
+            final user = settings.arguments as TheUser;
+            return MaterialPageRoute(builder: (context) => UserProfileScreen(user: user));
+          case '/add_device':
+            return MaterialPageRoute(builder: (context) => LoginScreen());
+          case '/metrics':
+            return MaterialPageRoute(builder: (context) => const MetricScreen());
+          default:
+            return null;
+        }
+      },
+      home: const MainPage(),
     );
   }
 }
 
 class MainPage extends StatefulWidget {
+  const MainPage({super.key});
+
   @override
   _MainPageState createState() => _MainPageState();
 }
@@ -68,14 +95,13 @@ class _MainPageState extends State<MainPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   int _selectedIndex = 0;
 
-
-
   @override
   void initState() {
     super.initState();
     _auth.authStateChanges().listen((user) {
       setState(() {
         //updates UI on auth change
+        _selectedIndex = 0;
       });
     });
   }
@@ -95,13 +121,13 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _widgetOptions = _auth.currentUser != null ? <Widget>[
-      UserWidget(),
+    final List<Widget> widgetOptions = _auth.currentUser != null ? <Widget>[
+      const NotificationWidget(),
       const DevicesScreen(),
       const MetricScreen(),
       const ConfigurationScreen(),
     ] : <Widget>[
-      UserWidget(),
+      const UserWelcomeWidget(),
       const ConfigurationScreen(),
     ] ;
 
@@ -134,7 +160,6 @@ class _MainPageState extends State<MainPage> {
         label: 'Configuration',
       ),
     ];
-
 
     return Scaffold(
       appBar: AppBar(
@@ -169,17 +194,22 @@ class _MainPageState extends State<MainPage> {
                 left: 0,
                 child: SunAndMoonWidget(),
               ),
+              const Positioned(
+                bottom: 3,
+                left: 20,
+                child: UserWidget(),
+              ),
             ],
           ),
           Expanded(
-            child: _widgetOptions.elementAt(_selectedIndex),
+            child: widgetOptions.elementAt(_selectedIndex),
           ),
         ],
       )
-          : _widgetOptions.elementAt(_selectedIndex),
+          : widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: _auth.currentUser != null ? loggedIn :
-          <BottomNavigationBarItem> [ loggedIn[0], loggedIn[3]],
+        items: _auth.currentUser != null ?
+        loggedIn : loggedOut,
         currentIndex: _selectedIndex,
         selectedItemColor: selectedColor,
         unselectedItemColor: unselectedColor,

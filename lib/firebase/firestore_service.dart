@@ -365,17 +365,8 @@ class FirestoreService {
         return null;
       }
 
-      Map<String, dynamic> userData = {
-        'email': user.email,
-        'firstname': user.firstname,
-        'lastname': user.lastname,
-        'username': user.username,
-        'imgurl': "",
-        'timestamp': user.timestamp.toIso8601String(),
-      };
-
       DocumentReference documentReference = await FirebaseFirestore.instance
-          .collection("users").add(userData);
+          .collection("users").add(user.toMap());
       await documentReference.update({'id': documentReference.id});
       return documentReference.id;
     } catch (e) {

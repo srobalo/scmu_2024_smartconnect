@@ -1,31 +1,48 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
-import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
-import 'package:scmu_2024_smartconnect/generic_listener.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
-import 'package:scmu_2024_smartconnect/widgets/notification_widget.dart';
+import '../defaults/default_values.dart';
 import '../objects/user.dart';
+import '../screens/user_profile_screen.dart';
+import 'package:scmu_2024_smartconnect/utils/user_cache.dart';
 
 class UserWidget extends StatefulWidget {
+  const UserWidget({super.key});
+
   @override
   _UserWidgetState createState() => _UserWidgetState();
 }
 
 class _UserWidgetState extends State<UserWidget> {
   late Stream<User?> _userStream;
+  TheUser? _theUser;
 
   @override
   void initState() {
     super.initState();
     _userStream = FirebaseAuth.instance.authStateChanges();
+    _fetchTheUser();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> _fetchTheUser() async {
+    final String? id = await MyPreferences.loadData<String>("USER_ID");
+    if (id == null || id.isEmpty) {
+      print("Failed to load user id");
+      setState(() {
+        _theUser = null;
+      });
+    } else {
+      print("[UserWidget] GetUser $id");
+      final user = await UserCache.getUser(id);
+      setState(() {
+        _theUser = user;
+      });
+    }
   }
 
   @override
@@ -34,15 +51,15 @@ class _UserWidgetState extends State<UserWidget> {
       stream: _userStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return Container();
         } else {
           final user = snapshot.data;
           if (user != null) {
             // User is authenticated
-            return AuthenticatedUserWidget(user: user);
+            return AuthenticatedUserWidget(user: user, theUser: _theUser);
           } else {
             // User is not authenticated
-            return UnauthenticatedUserWidget();
+            return Container();
           }
         }
       },
@@ -50,128 +67,134 @@ class _UserWidgetState extends State<UserWidget> {
   }
 }
 
-
 class AuthenticatedUserWidget extends StatelessWidget {
   final User user;
+  final TheUser? theUser;
 
-  const AuthenticatedUserWidget({Key? key, required this.user}) : super(key: key);
+  const AuthenticatedUserWidget(
+      {super.key, required this.user, required this.theUser});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: getUser(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
-        } else {
-          String? email = snapshot.data;
-          return SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                width: double.infinity,
-                height: 3,
-                color: backgroundColorTertiary,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 2, bottom: 2),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.transparent),
               ),
-              Container(
-                width: double.infinity,
-                height: 1,
-                color: Color.fromRGBO(0, 0, 0, 0.3),
-              ),
-              Container(
-                width: double.infinity,
-                height: 2,
-                color: Color.fromRGBO(0, 0, 0, 0.1),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 2, bottom: 2),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.transparent),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircleAvatar(
-                        radius: 20,
-                        backgroundImage: AssetImage("assets/user.png"),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (theUser != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                UserProfileScreen(user: theUser!),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: backgroundColorTertiary, width: 3),
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        email ?? 'Welcome',
-                        style: TextStyle(
-                          fontSize: 20,
-                          shadows: [
-                            Shadow(
-                              offset: const Offset(-2, -2),
-                              color: Colors.black.withOpacity(0.7),
-                            ),
-                            Shadow(
-                              offset: const Offset(2, -2),
-                              color: Colors.black.withOpacity(0.7),
-                            ),
-                            Shadow(
-                              offset: const Offset(2, 2),
-                              color: Colors.black.withOpacity(0.7),
-                            ),
-                            Shadow(
-                              offset: const Offset(-2, 2),
-                              color: Colors.black.withOpacity(0.7),
-                            ),
-                          ],
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: backgroundColorSecondary, width: 1),
+                        ),
+                        child: CircleAvatar(
+                          radius: 30,
+                          backgroundImage: (theUser != null && theUser!.imgurl.isNotEmpty)
+                              ? NetworkImage(theUser!.imgurl) as ImageProvider
+                              : const AssetImage("assets/empty.png"),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 6),
+                  theUser != null ?
+                  Text(
+                    '${theUser?.firstname} ${theUser?.lastname}',
+                    style: TextStyle(
+                      fontSize: 24,
+                      shadows: drawShadows(),
+                    ),
+                  ):
+                  const Text(
+                    '',
+                    style: TextStyle(
+                      fontSize: 24,
+                    ),
+                  )
+                ],
               ),
-              Container(
-                width: double.infinity,
-                height: 2,
-                color: const Color.fromRGBO(0, 0, 0, 0.1),
-              ),
-              Container(
-                width: double.infinity,
-                height: 1,
-                color: const Color.fromRGBO(0, 0, 0, 0.3),
-              ),
-              Container(
-                width: double.infinity,
-                height: 3,
-                color: backgroundColorTertiary,
-              ),
-              SizedBox(
-                height: (MediaQuery.of(context).size.height * 0.6)-25, // Adjust the height as needed
-                child: const NotificationWidget(),
-              ),
-            ],
-          )
-          );
-        }
-      },
+            ),
+          ),
+        ],
+      ),
     );
-  }
-
-  Future<String?> getUser() async {
-    return user.email;
   }
 }
 
-class UnauthenticatedUserWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-          },
-          child: Text('Login/Register'),
-        ),
-      ],
-    );
-  }
+List<Shadow> drawShadows() {
+  return [
+    Shadow(
+      offset: const Offset(-1, -1),
+      color: Colors.black.withOpacity(0.8),
+    ),
+    Shadow(
+      offset: const Offset(1, -1),
+      color: Colors.black.withOpacity(0.8),
+    ),
+    Shadow(
+      offset: const Offset(1, 1),
+      color: Colors.black.withOpacity(0.8),
+    ),
+    Shadow(
+      offset: const Offset(-1, 1),
+      color: Colors.black.withOpacity(0.8),
+    ),
+    Shadow(
+      offset: const Offset(-2, -2),
+      color: Colors.black.withOpacity(0.6),
+    ),
+    Shadow(
+      offset: const Offset(2, -2),
+      color: Colors.black.withOpacity(0.6),
+    ),
+    Shadow(
+      offset: const Offset(2, 2),
+      color: Colors.black.withOpacity(0.6),
+    ),
+    Shadow(
+      offset: const Offset(-2, 2),
+      color: Colors.black.withOpacity(0.6),
+    ),
+    Shadow(
+      offset: const Offset(-3, -3),
+      color: Colors.black.withOpacity(0.3),
+    ),
+    Shadow(
+      offset: const Offset(3, -3),
+      color: Colors.black.withOpacity(0.3),
+    ),
+    Shadow(
+      offset: const Offset(3, 3),
+      color: Colors.black.withOpacity(0.3),
+    ),
+    Shadow(
+      offset: const Offset(-3, 3),
+      color: Colors.black.withOpacity(0.3),
+    ),
+  ];
 }

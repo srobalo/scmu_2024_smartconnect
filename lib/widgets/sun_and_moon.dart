@@ -55,12 +55,12 @@ class _SunAndMoonWidgetState extends State<SunAndMoonWidget> {
       child: isDayTime
           ? const Icon(
         Icons.wb_sunny,
-        size: 50,
+        size: 48,
         color: Colors.yellow,
       )
           : const Icon(
         Icons.nightlight_round,
-        size: 50,
+        size: 48,
         color: Colors.blue,
       ),
     );

@@ -27,6 +27,11 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     _notificationsStream = _getUserNotificationsStream();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _showNotification(EventNotification eventNotification) async {
     final NotificationManager notificationManager = NotificationManager();
     try {
@@ -47,10 +52,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     yield* _firestoreService.getOrderedDocumentsStreamFromUser('notifications', id!, orderBy: 'timestamp', descending: true).map(
           (documents) {
         print("Documents Retrieved: ${documents.length}");
-        List<EventNotification> list  = documents.map((doc) {
+        List<EventNotification> list = documents.map((doc) {
           print("Document Data: ${doc.data()}");
           EventNotification eN = EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>);
-          if(!eN.shown) _showNotification(eN);
+          if (!eN.shown) _showNotification(eN);
           return eN;
         }).toList();
         cacheEventNotification = list;
@@ -94,12 +99,15 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         stream: _notificationsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting && cacheEventNotification.isEmpty) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           } else if (snapshot.hasError) {
-            return Center(
-              child: Text("Error: ${snapshot.error}"),
+            print("[NotificationWidget] Error: ${snapshot.hasError}");
+            return const Center(
+              child: Center(
+                child: Text("Welcome!", style: TextStyle(fontSize: 30.0)),
+              ),
             );
           } else {
             final List<EventNotification> notifications = snapshot.data ?? cacheEventNotification;
@@ -108,71 +116,91 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                 child: Text("No new notifications", style: TextStyle(fontSize: 20.0)),
               );
             } else {
-              return ListView.builder(
-                itemCount: notifications.length,
-                itemBuilder: (context, index) {
-                  final notification = notifications[index];
-                  IconData iconData;
-                  if (notification.observation == 'alert') {
-                    iconData = Icons.announcement;
-                  } else {
-                    iconData = Icons.notification_important;
-                  }
-
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      color: backgroundColorTertiary, // Change color as needed
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          left: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.0),
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: normal,
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: notifications.length + 1, // Add 1 for the "No more notifications" message
+                      itemBuilder: (context, index) {
+                        if (index == notifications.length) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                "No more notifications",
+                                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: backgroundColorTertiary),
                               ),
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6.0), // Adjust the value as needed
-                          child: ListTile(
-                            leading: Icon(iconData, color: backgroundColorSecondary),
-                            title: Text("${notification.domain} - ${notification.title}"),
-                            subtitle: Text(notification.description),
-                          ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: () {
-                              _deleteNotification(notification);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(Icons.close, size: 32, color: backgroundColorSecondary),
+                          );
+                        } else {
+                          final notification = notifications[index];
+                          IconData iconData;
+                          if (notification.observation == 'alert') {
+                            iconData = Icons.announcement;
+                          } else {
+                            iconData = Icons.notification_important;
+                          }
+
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              color: backgroundColorTertiary, // Change color as needed
                             ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 3,
-                          child: Text(
-                            _formatDateTime(notification.timestamp),
-                            style: TextStyle(fontSize: 12, color: backgroundColorSecondary),
-                          ),
-                        ),
-                      ],
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  left: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: normal,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6.0), // Adjust the value as needed
+                                  child: ListTile(
+                                    leading: Icon(iconData, color: backgroundColorSecondary),
+                                    title: Text("${notification.domain} - ${notification.title}"),
+                                    subtitle: Text(notification.description),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      _deleteNotification(notification);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(Icons.close, size: 32, color: backgroundColorSecondary),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 3,
+                                  child: Text(
+                                    _formatDateTime(notification.timestamp),
+                                    style: TextStyle(fontSize: 12, color: backgroundColorSecondary),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
                     ),
-                  );
-                },
+                  ],
+                ),
               );
             }
           }

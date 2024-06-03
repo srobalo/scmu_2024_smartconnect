@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 class TheUser {
   final String id;
   final String email;
   final String firstname;
   final String lastname;
   final String username;
-  final String imgurl;
+  late final String imgurl;
   final DateTime timestamp;
 
   TheUser({
@@ -21,24 +20,27 @@ class TheUser {
 
   static TheUser fromFirestore(QueryDocumentSnapshot<Object?> doc) {
     final data = doc.data() as Map<String, dynamic>;
-    final String id = data['id'];
-    final String email = data['email'];
-    final String firstname = data['firstname'];
-    final String lastname = data['lastname'];
-    final String username = data['username'];
-    final String imgurl = data['imgurl'];
-    final String timestampString = data['timestamp'];
-
-    final DateTime timestamp = DateTime.parse(timestampString);
-
     return TheUser(
-      id: id,
-      email: email,
-      firstname: firstname,
-      lastname: lastname,
-      username: username,
-      imgurl: imgurl,
-      timestamp: timestamp,
+      id: data['id'],
+      email: data['email'],
+      firstname: data['firstname'],
+      lastname: data['lastname'],
+      username: data['username'],
+      imgurl: data['imgurl'],
+      timestamp: DateTime.parse(data['timestamp']),
+    );
+  }
+
+  static TheUser fromFirestoreDoc(DocumentSnapshot<Object?> doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return TheUser(
+      id: data['id'],
+      email: data['email'],
+      firstname: data['firstname'],
+      lastname: data['lastname'],
+      username: data['username'],
+      imgurl: data['imgurl'],
+      timestamp: DateTime.parse(data['timestamp']),
     );
   }
 
@@ -49,30 +51,8 @@ class TheUser {
       'firstname': firstname,
       'lastname': lastname,
       'username': username,
-      'timestamp': timestamp,
-      'imgurl':imgurl
+      'timestamp': timestamp.toIso8601String(),
+      'imgurl': imgurl
     };
-  }
-  static TheUser fromFirestoreDoc(DocumentSnapshot<Object?> doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    final String id = data['id'];
-    final String email = data['email'];
-    final String firstname = data['firstname'];
-    final String lastname = data['lastname'];
-    final String username = data['username'];
-    final String imgurl = data['imgurl'];
-    final String timestampString = data['timestamp'];
-
-    final DateTime timestamp = DateTime.parse(timestampString);
-
-    return TheUser(
-      id: id,
-      email: email,
-      firstname: firstname,
-      lastname: lastname,
-      username: username,
-      imgurl: imgurl,
-      timestamp: timestamp,
-    );
   }
 }

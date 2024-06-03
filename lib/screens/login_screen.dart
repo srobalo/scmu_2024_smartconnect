@@ -20,15 +20,13 @@ class LoginScreen extends StatelessWidget {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
-      ).then((value) => {
-        MyPreferences.saveData<String>("USER_EMAIL", email),
-        Navigator.pop(context),
-      });
+      );
 
       await FirebaseDB().getUserFromEmail(email).then((value) async {
       if (value != null) {
         TheUser u = TheUser.fromFirestoreDoc(value);
         await MyPreferences.saveData<String>("USER_ID", u.id);
+        await MyPreferences.saveData<String>("USER_EMAIL", email);
         print("User logged in, id:${u.id}");
       } else {
         // Handle the case where value is null
@@ -36,20 +34,21 @@ class LoginScreen extends StatelessWidget {
         }
       });
 
+      Navigator.pop(context);
     } catch (error) {
       // Handle login errors
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Login Error'),
-            content: Text('Failed to login. Please check your email and password.'),
+            title: const Text('Login Error'),
+            content: const Text('Failed to login. Please check your email and password.'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -62,7 +61,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -71,27 +70,27 @@ class LoginScreen extends StatelessWidget {
           children: [
             TextField(
               controller: _emailController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Email',
                 labelStyle: TextStyle(color: Colors.blueGrey),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Password',
                 labelStyle: TextStyle(color: Colors.blueGrey),
               ),
               obscureText: true,
             ),
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
                 // Call login method when login button is pressed
                 _login(context);
               },
-              child: Text('Login'),
+              child: const Text('Login'),
             ),
             TextButton(
               onPressed: () {
@@ -101,7 +100,7 @@ class LoginScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => RegistrationScreen()),
                 );
               },
-              child: Text('Create an account'),
+              child: const Text('Create an account'),
             ),
           ],
         ),

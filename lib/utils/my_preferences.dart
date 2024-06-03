@@ -5,7 +5,8 @@ enum DataType { String, Int, Double, Bool }
 
 class MyPreferences {
   static Future<void> saveData<T>(String key, T value) async {
-    print("Preferences: Saving KeyValue");
+    String v = value.toString();
+    print("Preferences: Saving KeyValue: $key $v");
     final prefs = await SharedPreferences.getInstance();
     final dataType = T == String
         ? DataType.String
