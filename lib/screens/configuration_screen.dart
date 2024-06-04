@@ -28,7 +28,7 @@ class ConfigurationScreen extends StatelessWidget {
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Container();
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
@@ -86,37 +86,17 @@ class TestPanel extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const PermissionStatusWidget(),
+        const PermissionStatusWidget(visible: true),
         ElevatedButton(
           onPressed: () async {
             await _requestPermissions(context);
           },
           child: const Text('SHASM Permissions'),
         ),
-        ElevatedButton(
-          onPressed: () async {
-            await _requestNotificationTest();
-          },
-          child: const Text('Test Notification'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await _delayedNotification();
-          },
-          child: const Text('Test Delayed Notification'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await _requestDatabaseTest();
-          },
-          child: const Text('Test Notification Database'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await _requestBrowserTest();
-          },
-          child: const Text('Test Browser'),
-        ),
+        //ElevatedButton(onPressed: () async {await _requestNotificationTest();},child: const Text('Test Notification'),),
+        //ElevatedButton(onPressed: () async {await _delayedNotification();},child: const Text('Test Delayed Notification'),),
+        //ElevatedButton(onPressed: () async {await _requestDatabaseTest();},child: const Text('Test Notification Database'),),
+        //ElevatedButton(onPressed: () async {await _requestBrowserTest();},child: const Text('Test Browser'),),
       ],
     );
   }

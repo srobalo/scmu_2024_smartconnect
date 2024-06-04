@@ -10,6 +10,7 @@ import 'package:scmu_2024_smartconnect/screens/registration_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/user_profile_screen.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import 'package:scmu_2024_smartconnect/widgets/notification_widget.dart';
+import 'package:scmu_2024_smartconnect/widgets/permission_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/sun_and_moon.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_welcome_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_widget.dart';
@@ -202,6 +203,7 @@ class _MainPageState extends State<MainPage> {
               ),
             ],
           ),
+          const PermissionStatusWidget(visible: false),
           Expanded(
             child: widgetOptions.elementAt(_selectedIndex),
           ),

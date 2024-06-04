@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PermissionStatusWidget extends StatefulWidget {
-  const PermissionStatusWidget({super.key});
+  final bool visible;
+
+  const PermissionStatusWidget({super.key, required this.visible});
 
   @override
   _PermissionStatusWidgetState createState() => _PermissionStatusWidgetState();
@@ -25,9 +27,13 @@ class _PermissionStatusWidgetState extends State<PermissionStatusWidget> {
   Future<void> _checkPermissions() async {
     for (Permission permission in _permissionsStatus.keys) {
       final status = await permission.status;
-      setState(() {
-        _permissionsStatus[permission] = status.isGranted;
-      });
+      if (!status.isGranted) {
+        await _requestPermission(permission);
+      } else {
+        setState(() {
+          _permissionsStatus[permission] = true;
+        });
+      }
     }
   }
 
@@ -68,6 +74,10 @@ class _PermissionStatusWidgetState extends State<PermissionStatusWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.visible) {
+      return Container();
+    }
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
