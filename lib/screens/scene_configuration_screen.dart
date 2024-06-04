@@ -11,6 +11,7 @@ import '../defaults/default_values.dart';
 import '../objects/custom_notification.dart';
 import '../objects/user.dart';
 import '../screens/create_custom_notification.dart';
+import '../utils/jwt.dart';
 
 class SceneConfigurationScreen extends StatefulWidget {
   //final List<Device> devices;
@@ -86,26 +87,40 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
     }
   }
 
-  void _saveSceneConfiguration() {
+  Future<void> _saveSceneConfiguration() async {
     // Create a new scene object from the user inputs
-    final scene = Scene(
-      name: sceneName,
-      triggers: selectedTriggers,
-      actions: selectedActions,
-    );
+    var cap = await MyPreferences.loadData<String>("capabilities");
+    if (cap != null) {
+      var token = parseJwt(cap);
+      if (token != null) {
+        String id = token['id'];
+        String mac = token['mac'];
+        final scene = Scene(
+          name: sceneName,
+          triggers: selectedTriggers,
+          actions: selectedActions,
+          mac: mac,
+          user: id
+        );
+        // Convert the scene object into a Map
+        final sceneData = scene.toMap();
 
-    // Convert the scene object into a Map
-    final sceneData = scene.toMap();
+        print("Saving scene: ${sceneData}");
 
-    print("Saving scene: ${sceneData}");
+        // Add the scene to the Firestore 'scenes' collection
+        FirebaseFirestore.instance.collection('scenes').add(sceneData).then((result) {
+          print("Scene saved successfully!");
+          Navigator.pop(context); // Optionally navigate back
+        }).catchError((error) {
+          print("Failed to save scene: $error");
+        });
+      }else{
+        print("Failed to save scene: no permission");
+      }
 
-    // Add the scene to the Firestore 'scenes' collection
-    FirebaseFirestore.instance.collection('scenes').add(sceneData).then((result) {
-      print("Scene saved successfully!");
-      Navigator.pop(context); // Optionally navigate back
-    }).catchError((error) {
-      print("Failed to save scene: $error");
-    });
+    }else{
+      print("Failed to save scene: not connected to device");
+    }
   }
 
   void loadCustomNotifications() async {

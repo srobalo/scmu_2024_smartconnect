@@ -3,10 +3,13 @@ import 'package:scmu_2024_smartconnect/screens/scene_configuration_screen.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/objects/scene.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:scmu_2024_smartconnect/utils/jwt.dart';
 import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 import '../defaults/default_values.dart';
 import 'package:http/http.dart' as http;
 
+import '../firebase/firestore_service.dart';
+import '../utils/my_preferences.dart';
 
 class ScenesScreen extends StatefulWidget {
   //final List<Device> devices;
@@ -20,7 +23,7 @@ class ScenesScreen extends StatefulWidget {
 class _ScenesScreenState extends State<ScenesScreen> {
   Map<String, bool> sceneActive = {};
   List<Scene> scenes = []; // Hold scenes after fetching
-
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
@@ -28,18 +31,21 @@ class _ScenesScreenState extends State<ScenesScreen> {
     _fetchScenesFromFirebase(); // Fetch scenes on init
   }
 
-  Future<void> sendCommandToESP(String triggerCommand, String actionCommand, String name, String command) async {
+  Future<void> sendCommandToESP(String triggerCommand, String actionCommand,
+      String name, String command) async {
     try {
-
-      final url = Uri.parse('http://192.168.1.204/${actionCommand}/${triggerCommand}/$command');
+      final url = Uri.parse(
+          'http://192.168.1.204/${actionCommand}/${triggerCommand}/$command');
       print(url);
       final response = await http.get(url);
       if (response.statusCode == 200) {
         print('Command sent successfully: $command');
         NotificationToast.showToast(context, 'Scene "$name" updated: $command');
       } else {
-        print('Failed to send command: $command, Status code: ${response.statusCode}');
-        NotificationToast.showToast(context, 'Failed to send command: $command');
+        print(
+            'Failed to send command: $command, Status code: ${response.statusCode}');
+        NotificationToast.showToast(
+            context, 'Failed to send command: $command');
       }
     } catch (e) {
       print('Error sending command: $e');
@@ -47,23 +53,37 @@ class _ScenesScreenState extends State<ScenesScreen> {
     }
   }
 
-
   Future<List<Scene>> _fetchScenesFromFirebase() async {
-    final querySnapshot = await FirebaseFirestore.instance.collection('scenes').get();
-    final scenes = querySnapshot.docs.map((doc) => Scene.fromFirestore(doc)).toList();
-    // Initialize activation state for each scene
-    for (var scene in scenes) {
-      if (!sceneActive.containsKey(scene.name)) {
-        sceneActive[scene.name] = false; // Default to inactive
+    List<Scene> scenes;
+    var cap = await MyPreferences.loadData<String>("capabilities");
+    if (cap == null) {
+      return [];
+    } else {
+      var token = parseJwt(cap);
+      if (token == null) {
+        return [];
+      } else {
+        String id = token['owner'];
+        String mac = token['mac'];
+        final docs =
+            await _firestoreService.getAllScenesFromUserAndDevice(id,mac);
+        scenes = docs.map((doc) => Scene.fromFirestore(doc)).toList();
+
+        // Initialize activation state for each scene
+        for (var scene in scenes) {
+          if (!sceneActive.containsKey(scene.name)) {
+            sceneActive[scene.name] = false; // Default to inactive
+          }
+        }
       }
     }
-
     return scenes;
   }
 
   Future<void> _deleteSceneFromFirebase(Scene scene) async {
     try {
-      await FirebaseFirestore.instance.collection('scenes')
+      await FirebaseFirestore.instance
+          .collection('scenes')
           .doc(scene.name)
           .delete();
       NotificationToast.showToast(context, "Scene deleted successfully.");
@@ -84,7 +104,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text("No scenes available"));
-    } else {
+          } else {
             final scenes = snapshot.data!;
             return ListView.builder(
               itemCount: scenes.length + 1,
@@ -109,8 +129,8 @@ class _ScenesScreenState extends State<ScenesScreen> {
                       leading: Icon(Icons.lightbulb_outline,
                           color: backgroundColorSecondary),
                       title: Text(scene.name),
-                      subtitle: Text('Triggers: ${scene.triggers
-                          .length}, Actions: ${scene.actions.length}'),
+                      subtitle: Text(
+                          'Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -126,19 +146,19 @@ class _ScenesScreenState extends State<ScenesScreen> {
                                 setState(() {
                                   sceneActive[scene.name] = value;
                                 });
-                                print('Scene ${scene.actions[0]
-                                    .command} is now ${value
-                                    ? 'active'
-                                    : 'inactive'}');
-                                sendCommandToESP(scene.triggers[0].command,
-                                    scene.actions[0].command, scene.name,
+                                print(
+                                    'Scene ${scene.actions[0].command} is now ${value ? 'active' : 'inactive'}');
+                                sendCommandToESP(
+                                    scene.triggers[0].command,
+                                    scene.actions[0].command,
+                                    scene.name,
                                     value ? "on" : "off");
                               },
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(
-                                Icons.delete, color: Colors.black54),
+                            icon:
+                                const Icon(Icons.delete, color: Colors.black54),
                             onPressed: () {
                               _deleteSceneFromFirebase(scene);
                             },

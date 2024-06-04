@@ -269,7 +269,19 @@ class FirestoreService {
       String userid) async {
     try {
       QuerySnapshot querySnapshot = await _firestore.collection("scenes").where(
-          "userid", isEqualTo: userid).get();
+          "user", isEqualTo: userid).get();
+      return querySnapshot.docs;
+    } catch (e) {
+      print("Error retrieving documents: $e");
+      return [];
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot>> getAllScenesFromUserAndDevice(
+      String userid,String mac) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("scenes").where(
+          "user", isEqualTo: userid).where("mac",isEqualTo: mac).get();
       return querySnapshot.docs;
     } catch (e) {
       print("Error retrieving documents: $e");

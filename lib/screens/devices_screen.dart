@@ -7,6 +7,7 @@ import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import '../defaults/default_values.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../firebase/firestore_service.dart';
 import '../objects/scene_actuator.dart';
 import '../utils/jwt.dart';
 import '../widgets/createUser_widget.dart';
@@ -24,6 +25,7 @@ class _DevicesScreenState extends State<DevicesScreen>
   late TabController _tabController;
   List<Actuator> devices = [];
   bool isOwner = false;
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
@@ -42,10 +44,10 @@ class _DevicesScreenState extends State<DevicesScreen>
   Future<List<Actuator>> initDevices() async {
     List<Actuator> fetchedDevices = [];
     try {
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('actions').get();
+      final List<QueryDocumentSnapshot> snapshot = await _firestoreService.getAllActions();
       var cap =  await MyPreferences.loadData<String>("capabilities");
       if(cap != null) isOwner = checkIsOwner(cap);
-      for (var doc in snapshot.docs) {
+      for (var doc in snapshot) {
         var data = doc.data() as Map<String, dynamic>;
         Actuator device = Actuator(
           command: data['command'] ?? '', // Adjust field names based on your Firestore
@@ -141,7 +143,6 @@ class _DevicesScreenState extends State<DevicesScreen>
 
   Widget _buildDevicesTab(bool isOwner) {
     return Stack(children: [
-      // devices = await initDevices();
       devices.isEmpty
           ? const Center(
               child: Text(
