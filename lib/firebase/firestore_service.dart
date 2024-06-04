@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/objects/user.dart';
 
 import '../objects/device.dart';
-import '../objects/scene_actuator.dart';
-import '../objects/scene_trigger.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

@@ -48,12 +48,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   Stream<List<EventNotification>> _getUserNotificationsStream() async* {
     final id = await MyPreferences.loadData<String>("USER_ID");
-    print("User ID: $id");
     yield* _firestoreService.getOrderedDocumentsStreamFromUser('notifications', id!, orderBy: 'timestamp', descending: true).map(
           (documents) {
         print("Documents Retrieved: ${documents.length}");
         List<EventNotification> list = documents.map((doc) {
-          print("Document Data: ${doc.data()}");
           EventNotification eN = EventNotification.fromFirestore(doc as QueryDocumentSnapshot<Object?>);
           if (!eN.shown) _showNotification(eN);
           return eN;
