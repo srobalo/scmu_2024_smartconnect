@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/firebase/firestore_service.dart';
-import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 
-import '../utils/excuses.dart';
 
 class NotificationWidget extends StatefulWidget {
   const NotificationWidget({super.key});
@@ -18,12 +17,21 @@ class NotificationWidget extends StatefulWidget {
 
 class _NotificationWidgetState extends State<NotificationWidget> {
   final FirestoreService _firestoreService = FirestoreService();
+  late Stream<User?> _userStream;
+  //
   late Stream<List<EventNotification>> _notificationsStream;
   List<EventNotification> cacheEventNotification = [];
 
   @override
   void initState() {
     super.initState();
+    print("[Notification Widget] Init");
+    _userStream = FirebaseAuth.instance.authStateChanges(); // listen and do _notificationsStream = _getUserNotificationsStream();
+    _userStream.listen((User? user) {
+      setState(() {
+        _notificationsStream = _getUserNotificationsStream();
+      });
+    });
     _notificationsStream = _getUserNotificationsStream();
   }
 
@@ -33,6 +41,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   }
 
   Future<void> _showNotification(EventNotification eventNotification) async {
+    print("[Notification Widget] EventNotificationSystem Init");
     final NotificationManager notificationManager = NotificationManager();
     try {
       await notificationManager.showNotification(
@@ -47,7 +56,9 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   }
 
   Stream<List<EventNotification>> _getUserNotificationsStream() async* {
-    final id = await MyPreferences.loadData<String>("USER_ID");
+    print("[Notification Widget] UserNotificationsStream Init");
+    final String? id = await MyPreferences.loadData<String>("USER_ID");
+    //
     yield* _firestoreService.getOrderedDocumentsStreamFromUser('notifications', id!, orderBy: 'timestamp', descending: true).map(
           (documents) {
         print("Documents Retrieved: ${documents.length}");
@@ -56,7 +67,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           if (!eN.shown) _showNotification(eN);
           return eN;
         }).toList();
-        cacheEventNotification = list;
+        //
+        setState(() {
+          cacheEventNotification = list;
+        });
         return list;
       },
     );
@@ -97,11 +111,9 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         stream: _notificationsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting && cacheEventNotification.isEmpty) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return Container();
           } else if (snapshot.hasError) {
-            print("[NotificationWidget] Error: ${snapshot.hasError}");
+            print("[NotificationWidget] Has error? ${snapshot.hasError}");
             return const Center(
               child: Center(
                 child: Text("Welcome!", style: TextStyle(fontSize: 30.0)),

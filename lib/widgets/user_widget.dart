@@ -39,14 +39,17 @@ class _UserWidgetState extends State<UserWidget> {
     } else {
       print("[UserWidget] GetUser $id");
       final user = await UserCache.getUser(id);
-      setState(() {
-        _theUser = user;
-      });
+      if(_theUser != user) {
+        setState(() {
+          _theUser = user;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print("[UserWidget] Building");
     return StreamBuilder<User?>(
       stream: _userStream,
       builder: (context, snapshot) {
@@ -55,93 +58,90 @@ class _UserWidgetState extends State<UserWidget> {
         } else {
           final user = snapshot.data;
           if (user != null) {
+            _fetchTheUser();
             // User is authenticated
-            return AuthenticatedUserWidget(user: user, theUser: _theUser);
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2, bottom: 2),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.transparent),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              if (_theUser != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        UserProfileScreen(user: _theUser!),
+                                  ),
+                                );
+                              }
+                            },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: backgroundColorTertiary, width: 3),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: backgroundColorSecondary, width: 1),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundImage: (_theUser != null && _theUser!.imgurl.isNotEmpty)
+                                    ? NetworkImage(_theUser!.imgurl) as ImageProvider
+                                    : const AssetImage("assets/empty.png"),
+                              ),
+                              if (_theUser != null && _theUser!.imgurl.isEmpty)
+                                const Positioned.fill(
+                                  child: CircularProgressIndicator(),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                          ),
+                          const SizedBox(width: 6),
+                          _theUser != null ?
+                          Text(
+                            '${_theUser?.firstname} ${_theUser?.lastname}',
+                            style: TextStyle(
+                              fontSize: 24,
+                              shadows: drawShadows(),
+                            ),
+                          ):
+                          const Text(
+                            '',
+                            style: TextStyle(
+                              fontSize: 24,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
           } else {
             // User is not authenticated
             return Container();
           }
         }
       },
-    );
-  }
-}
-
-class AuthenticatedUserWidget extends StatelessWidget {
-  final User user;
-  final TheUser? theUser;
-
-  const AuthenticatedUserWidget(
-      {super.key, required this.user, required this.theUser});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 2, bottom: 2),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.transparent),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (theUser != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                UserProfileScreen(user: theUser!),
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: backgroundColorTertiary, width: 3),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: backgroundColorSecondary, width: 1),
-                        ),
-                        child: CircleAvatar(
-                          radius: 30,
-                          backgroundImage: (theUser != null && theUser!.imgurl.isNotEmpty)
-                              ? NetworkImage(theUser!.imgurl) as ImageProvider
-                              : const AssetImage("assets/empty.png"),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  theUser != null ?
-                  Text(
-                    '${theUser?.firstname} ${theUser?.lastname}',
-                    style: TextStyle(
-                      fontSize: 24,
-                      shadows: drawShadows(),
-                    ),
-                  ):
-                  const Text(
-                    '',
-                    style: TextStyle(
-                      fontSize: 24,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

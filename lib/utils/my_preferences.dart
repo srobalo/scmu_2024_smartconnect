@@ -49,13 +49,21 @@ class MyPreferences {
 
     switch (dataType) {
       case DataType.String:
-        return prefs.getString(key) as T?;
+        final value = prefs.getString(key);
+        print("Preferences: Key = $key, Value = $value");
+        return value as T?;
       case DataType.Int:
-        return prefs.getInt(key) as T?;
+        final value = prefs.getInt(key);
+        print("Preferences: Key = $key, Value = $value");
+        return value as T?;
       case DataType.Double:
-        return prefs.getDouble(key) as T?;
+        final value = prefs.getDouble(key);
+        print("Preferences: Key = $key, Value = $value");
+        return value as T?;
       case DataType.Bool:
-        return prefs.getBool(key) as T?;
+        final value = prefs.getBool(key);
+        print("Preferences: Key = $key, Value = $value");
+        return value as T?;
     }
   }
 
