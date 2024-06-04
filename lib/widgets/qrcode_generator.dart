@@ -4,7 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 class QRCodeGeneratorWidget extends StatelessWidget {
   final String text;
 
-  const QRCodeGeneratorWidget({Key? key, required this.text}) : super(key: key);
+  const QRCodeGeneratorWidget({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class QRCodeGeneratorWidget extends StatelessWidget {
                 ),
               ],
             ),
-            padding: EdgeInsets.all(4.0), // Padding inside the container
+            padding: const EdgeInsets.all(4.0), // Padding inside the container
             child: QrImageView(
               data: text,
               version: QrVersions.auto,

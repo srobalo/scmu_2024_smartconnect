@@ -1,5 +1,7 @@
 import 'dart:async';
 
+
+import '../defaults/default_values.dart';
 import '../firebase/firebasedb.dart';
 import '../objects/user.dart';
 
@@ -9,7 +11,7 @@ class UserCache {
   static Future<TheUser?> getUser(String userId) async {
     print("[UserCache] Get User invoked");
     final now = DateTime.now();
-    if (_cache.containsKey(userId) && now.difference(_cache[userId]!.timestamp) < const Duration(seconds: 15)) {
+    if (_cache.containsKey(userId) && now.difference(_cache[userId]!.timestamp) < const Duration(seconds: cacheHoldFetchInSeconds)) {
       print("[UserCache] Returning Cached User");
       return _cache[userId]!.user;
     }

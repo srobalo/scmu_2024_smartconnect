@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/objects/user.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import 'package:scmu_2024_smartconnect/widgets/qrcode_generator.dart';
+import 'package:scmu_2024_smartconnect/widgets/qrcode_scanner.dart';
 
 import '../defaults/default_values.dart';
 import '../utils/user_cache.dart';
@@ -109,8 +110,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       _buildUserInfoRow('Username', user.username),
                       _buildUserInfoRow('User ID', user.id),
                       const SizedBox(height: 16),
-                      const QRCodeGeneratorWidget(text: ""),
-                      const SizedBox(height: 16),
+                      QRCodeGeneratorWidget(text: user.id),
+                      const SizedBox(height: 4),
+                      const QRCodeReaderWidget(),
                       Center(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
