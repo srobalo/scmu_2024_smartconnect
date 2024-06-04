@@ -52,7 +52,6 @@ class _DevicesScreenState extends State<DevicesScreen>
         Actuator device = Actuator(
           command: data['command'] ?? '', // Adjust field names based on your Firestore
           id_action: data['id_action'] ?? 0,
-          device_id: data['device_id'] ?? '',
           counter: data['counter'] ?? '',
           name: data['name'] ?? '',
           state: data['state'] ?? false,
@@ -67,19 +66,19 @@ class _DevicesScreenState extends State<DevicesScreen>
     }
   }
 
-  void sendCommand(
-      String deviceId, String commandAction, String deviceIp) async {
+  void  sendCommand(
+      String actuatorId, String commandAction, String deviceIp) async {
     try {
-      final url = Uri.parse('http://${deviceIp}/${deviceId}/${commandAction}');
+      final url = Uri.parse('http://${deviceIp}/${actuatorId}/${commandAction}');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         print(
-            'Command sent successfully for $deviceId with action $commandAction');
+            'Command sent successfully for $deviceIp with action $actuatorId/$commandAction');
       } else {
         print('Failed to send command: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error sending command for $deviceId: $e');
+      print('Error sending command for $deviceIp: $e');
     }
   }
 
@@ -181,8 +180,8 @@ class _DevicesScreenState extends State<DevicesScreen>
                           }else {
                             String commandAction =
                             (newState == devices[index].state) ? "on" : "off";
-                            sendCommand(devices[index].command ?? '1', commandAction,
-                                devices[index].device_id ?? '1');
+                            sendCommand(devices[index].id_action.toString() ?? '1', commandAction,
+                                devices[index].command ?? '1');
                             print(
                                 "Command sent for ${devices[index]
                                     .name} with action $commandAction");

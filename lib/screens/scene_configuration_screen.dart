@@ -3,7 +3,6 @@ import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/objects/scene_trigger.dart';
 import 'package:scmu_2024_smartconnect/objects/scene_actuator.dart';
-import 'package:scmu_2024_smartconnect/objects/sensor.dart';
 import 'package:scmu_2024_smartconnect/objects/scene.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';

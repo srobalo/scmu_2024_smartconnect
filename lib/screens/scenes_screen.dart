@@ -57,6 +57,16 @@ class _ScenesScreenState extends State<ScenesScreen> {
     List<Scene> scenes;
     var cap = await MyPreferences.loadData<String>("capabilities");
     if (cap == null) {
+      // final docs =
+      // await _firestoreService.getAllScenesFromUserAndDevice("o4Smbl0bRPOCsw6cderk","1");
+      // scenes = docs.map((doc) => Scene.fromFirestore(doc)).toList();
+      //
+      // // Initialize activation state for each scene
+      // for (var scene in scenes) {
+      //   if (!sceneActive.containsKey(scene.name)) {
+      //     sceneActive[scene.name] = false; // Default to inactive
+      //   }}
+      // return scenes;
       return [];
     } else {
       var token = parseJwt(cap);
