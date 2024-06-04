@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
 import 'package:scmu_2024_smartconnect/widgets/qrcode_generator.dart';
+import 'package:scmu_2024_smartconnect/widgets/realtime_data_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../objects/device.dart';
 import '../utils/excuses.dart';
@@ -41,6 +42,13 @@ class ConfigurationScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 TestPanel(context: context),
+                const Center(
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: RealtimeDataWidget(),
+                  ),
+                ),
                 const Spacer(), // Pushes the following widgets to the bottom
                 Center(
                   child: SizedBox(

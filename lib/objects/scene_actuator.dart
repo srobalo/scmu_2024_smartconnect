@@ -56,4 +56,3 @@ class Actuator {
     return 'Actuator{name: $name, command: $command, id_action: $id_action, device_id: $device_id, counter: $counter}';
   }
 }
-
