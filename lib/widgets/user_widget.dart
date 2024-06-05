@@ -105,16 +105,54 @@ class _UserWidgetState extends State<UserWidget> {
                                         } else if (snapshot.hasData) {
                                           final data = snapshot.data!.data() as Map<String, dynamic>;
                                           final imageUrl = data['imgurl'] ?? '';
-                                          return CircleAvatar(
-                                            radius: 30,
-                                            backgroundImage: imageUrl.isNotEmpty
-                                                ? NetworkImage(imageUrl)
-                                                : const AssetImage("assets/empty.png") as ImageProvider,
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: backgroundColorTertiary,
+                                                width: 3,
+                                              ),
+                                            ),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: backgroundColorSecondary,
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: CircleAvatar(
+                                                radius: 32,
+                                                backgroundImage: imageUrl.isNotEmpty
+                                                    ? NetworkImage(imageUrl)
+                                                    : const AssetImage("assets/empty.png") as ImageProvider,
+                                                backgroundColor: Colors.grey,
+                                              ),
+                                            ),
                                           );
                                         } else {
-                                          return const CircleAvatar(
-                                            radius: 30,
-                                            backgroundImage: AssetImage("assets/empty.png"),
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: backgroundColorTertiary,
+                                                width: 3,
+                                              ),
+                                            ),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: backgroundColorSecondary,
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: const CircleAvatar(
+                                                radius: 50,
+                                                backgroundImage: AssetImage("assets/empty.png"),
+                                                backgroundColor: Colors.grey,
+                                              ),
+                                            ),
                                           );
                                         }
                                       },
