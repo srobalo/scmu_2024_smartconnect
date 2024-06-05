@@ -89,6 +89,10 @@ class FirebaseDB {
     return await _firestoreService.getAllCustomNotificationsFromUser(userid);
   }
 
+  Future<void> deleteCustomNotificationById(String id) async {
+    await _firestoreService.deleteCustomNotificationById(id);
+  }
+
   Future<List<DocumentSnapshot>> getAllDevicesFromUser(String userid) async {
     return await _firestoreService.getAllDevicesFromUser(userid);
   }
@@ -115,6 +119,10 @@ class FirebaseDB {
 
   Future<String?> createUser(TheUser user) async {
     return await _firestoreService.createUserIfNotExists(user);
+  }
+
+  Future<void> updateUser(TheUser user) async {
+    return await _firestoreService.updateUser(user);
   }
 
 }

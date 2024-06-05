@@ -45,12 +45,12 @@ class _DevicesScreenState extends State<DevicesScreen>
     List<Actuator> fetchedDevices = [];
     try {
       final List<QueryDocumentSnapshot> snapshot = await _firestoreService.getAllActions();
-      var cap =  await MyPreferences.loadData<String>("capabilities");
-      if(cap != null) isOwner = checkIsOwner(cap);
+      var capabilities =  await MyPreferences.loadData<String>("capabilities");
+      if(capabilities != null) isOwner = checkIsOwner(capabilities);
       for (var doc in snapshot) {
         var data = doc.data() as Map<String, dynamic>;
         Actuator device = Actuator(
-          command: data['command'] ?? '', // Adjust field names based on your Firestore
+          command: data['command'] ?? '',
           id_action: data['id_action'] ?? 0,
           counter: data['counter'] ?? '',
           name: data['name'] ?? '',
@@ -134,7 +134,7 @@ class _DevicesScreenState extends State<DevicesScreen>
         controller: _tabController,
         children: [
           _buildDevicesTab(isOwner),
-           ScenesScreen(),
+           const ScenesScreen(),
         ],
       ),
     );
@@ -173,7 +173,7 @@ class _DevicesScreenState extends State<DevicesScreen>
                       onChanged: (newState) {
                         setState(() {
                           devices[index].state = newState;
-                          if (devices[index].command == null) {
+                          if (devices[index].command.isEmpty) {
                             print(
                                 "Error: No commandId for device ${devices[index].name}");
                             return; // Prevent further action if commandId is null

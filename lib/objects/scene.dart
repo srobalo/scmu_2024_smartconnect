@@ -6,17 +6,21 @@ class Scene {
   final String name;
   final List<Trigger> triggers;
   final List<Actuator> actions;
-  bool isActive; // Add this line
+  bool isActive;
   final String mac;
   final String user;
+  final bool notifies;
+  final String customNotificationId;
 
   Scene({
     required this.name,
     required this.triggers,
     required this.actions,
-    this.isActive = false, // Default value for isActive
+    this.isActive = false,
     required this.user,
-    required this.mac
+    required this.mac,
+    this.notifies = false,
+    this.customNotificationId = '',
   });
 
   // Converts Scene object to Map
@@ -25,9 +29,11 @@ class Scene {
       'name': name,
       'triggers': triggers.map((trigger) => trigger.toMap()).toList(),
       'actions': actions.map((action) => action.toMap()).toList(),
-      'isActive': isActive, // Include isActive in the map
+      'isActive': isActive,
       'user': user,
-      'mac':mac
+      'mac': mac,
+      'notifies': notifies,
+      'customNotificationId': customNotificationId,
     };
   }
 
@@ -50,18 +56,22 @@ class Scene {
       actions.addAll(actionList.map((actionData) => Actuator.fromMap(actionData as Map<String, dynamic>)));
     }
 
-    // Determine if the scene is active (default to false if not specified)
     bool isActive = data['isActive'] ?? false;
+    bool notifies = data['notifies'] ?? false;
+    String customNotificationId = data['customNotificationId'] ?? '';
 
     String user = data['user'] ?? '';
     String mac = data['mac'] ?? '';
+
     return Scene(
       name: name,
       triggers: triggers,
       actions: actions,
       isActive: isActive,
-      user:user,
-      mac:mac
+      user: user,
+      mac: mac,
+      notifies: notifies,
+      customNotificationId: customNotificationId,
     );
   }
 }

@@ -11,11 +11,12 @@ import '../objects/custom_notification.dart';
 import '../objects/user.dart';
 import '../screens/create_custom_notification.dart';
 import '../utils/jwt.dart';
+import '../utils/notification_toast.dart';
 
 class SceneConfigurationScreen extends StatefulWidget {
   //final List<Device> devices;
 
-  const SceneConfigurationScreen({Key? key}) : super(key: key);
+  const SceneConfigurationScreen({super.key});
 
   @override
   _SceneConfigurationScreenState createState() => _SceneConfigurationScreenState();
@@ -29,24 +30,23 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
   List<Trigger> selectedTriggers = [];
   List<Actuator> selectedActions = [];
   List<Actuator> actuators = [];
-  bool showNotification = false; // Default value for show notification checkbox
-  List<CustomNotification> customNotifications = []; // List to hold custom notifications
-
+  bool showNotification = false;
+  List<CustomNotification> customNotifications = [];
+  CustomNotification? selectedNotification;
 
   @override
   void initState() {
-
-
     super.initState();
-    // Load custom notifications from Firestore
     fetchTriggersFromFirestore();
     fetchActuatorsFromFirestore();
     loadCustomNotifications();
   }
+
   Future<void> fetchTriggersFromFirestore() async {
     FirebaseFirestore db = FirebaseFirestore.instance;
     try {
-      QuerySnapshot<Map<String, dynamic>> snapshot = await db.collection('triggers').get();
+      QuerySnapshot<Map<String, dynamic>> snapshot =
+      await db.collection('triggers').get();
 
       List<Trigger> fetchedTriggers = snapshot.docs.map((doc) {
         return Trigger.fromFirestore(doc);
@@ -55,7 +55,6 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
       setState(() {
         triggers = fetchedTriggers;
       });
-
     } catch (e) {
       print('Error fetching triggers from Firestore: $e');
     }
@@ -65,7 +64,8 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
     print("Fetching actuators from Firestore...");
     FirebaseFirestore db = FirebaseFirestore.instance;
     try {
-      QuerySnapshot<Map<String, dynamic>> snapshot = await db.collection('actions').get();
+      QuerySnapshot<Map<String, dynamic>> snapshot = await db.collection(
+          'actions').get();
       print("Documents fetched: ${snapshot.docs.length}");
 
       List<Actuator> fetchedActuator = snapshot.docs.map((doc) {
@@ -88,9 +88,9 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
 
   Future<void> _saveSceneConfiguration() async {
     // Create a new scene object from the user inputs
-    var cap = await MyPreferences.loadData<String>("capabilities");
-    if (cap != null) {
-      var token = parseJwt(cap);
+    var capabilities = await MyPreferences.loadData<String>("capabilities");
+    if (capabilities != null) {
+      var token = parseJwt(capabilities);
       if (token != null) {
         String id = token['id'];
         String mac = token['mac'];
@@ -99,7 +99,9 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
           triggers: selectedTriggers,
           actions: selectedActions,
           mac: mac,
-          user: id
+          user: id,
+          notifies: showNotification,
+          customNotificationId: showNotification ? (selectedNotification != null ? selectedNotification!.id : '') : '',
         );
         // Convert the scene object into a Map
         final sceneData = scene.toMap();
@@ -107,17 +109,19 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
         print("Saving scene: ${sceneData}");
 
         // Add the scene to the Firestore 'scenes' collection
-        FirebaseFirestore.instance.collection('scenes').add(sceneData).then((result) {
+        FirebaseFirestore.instance.collection('scenes').add(sceneData).then((
+            result) {
           print("Scene saved successfully!");
+          NotificationToast.showToast(context, "Scene saved successfully!");
           Navigator.pop(context); // Optionally navigate back
         }).catchError((error) {
           print("Failed to save scene: $error");
+          NotificationToast.showToast(context, "Failed to save scene: $error");
         });
-      }else{
+      } else {
         print("Failed to save scene: no permission");
       }
-
-    }else{
+    } else {
       print("Failed to save scene: not connected to device");
     }
   }
@@ -125,7 +129,8 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
   void loadCustomNotifications() async {
     final id = await MyPreferences.loadData<String>("USER_ID");
     if (id != "") {
-      final customNotificationsSnapshot = await FirebaseDB().getAllCustomNotificationsFromUser(id!);
+      final customNotificationsSnapshot = await FirebaseDB()
+          .getAllCustomNotificationsFromUser(id!);
       print(id);
       setState(() {
         // Map Firestore documents to CustomNotification objects
@@ -133,6 +138,45 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
             CustomNotification.fromFirestoreDoc(doc)).toList();
       });
     }
+  }
+
+  void _deleteCustomNotification() {
+    if (selectedNotification != null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Delete Custom Notification'),
+            content: Text(
+                'Are you sure you want to delete "${selectedNotification!.title}"?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  customNotifications.remove(selectedNotification);
+                  _removeNotificationFromDatabase(selectedNotification!);
+                  setState(() {
+                    selectedNotification = null;
+                  });
+                  // Close the dialog
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Delete'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  void _removeNotificationFromDatabase(CustomNotification notification) async {
+    await FirebaseDB().deleteCustomNotificationById(notification.id);
   }
 
   @override
@@ -143,8 +187,8 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
       ),
       body: Center(
         child: Container(
-          padding: EdgeInsets.all(16.0),
-          margin: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
+          margin: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: backgroundColorTertiary,
             borderRadius: BorderRadius.circular(20.0),
@@ -154,9 +198,11 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Scene Name',
-                    labelStyle: TextStyle(color: Colors.black), // Set label text color to black
+                    labelStyle: TextStyle(
+                      color: backgroundColorSecondary, // Set label text color to black
+                    ),
                   ),
                   initialValue: sceneName,
                   onChanged: (value) {
@@ -164,8 +210,8 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                       sceneName = value;
                     });
                   },
-                  style: const TextStyle(
-                    color: Colors.black,
+                  style: TextStyle(
+                    color: backgroundColor, // Set text color to black
                   ),
                 ),
                 const SizedBox(height: 16.0),
@@ -182,7 +228,8 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                   items: triggers.map((Trigger trigger) {
                     return DropdownMenuItem<Trigger>(
                       value: trigger,
-                      child: Text("${trigger.name} (Command: ${trigger.command})"),
+                      child: Text("${trigger.name} (Command: ${trigger
+                          .command})"),
                     );
                   }).toList(),
                 ),
@@ -208,30 +255,30 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                 Row(
                   children: [
                     Checkbox(
-                      value: showNotification,
-                      onChanged: (value) {
-                        setState(() {
-                          showNotification = value!;
-                        });
-                      },
+                      value: showNotification, onChanged: (value) {
+                      setState(() {
+                        showNotification = value!;
+                      });
+                    },
                     ),
                     Text(
                       'Show notification',
                       style: TextStyle(
-                        color: backgroundColorSecondary, // Change the color here
+                        color: backgroundColorSecondary,
                       ),
                     ),
                   ],
                 ),
-                // Display custom notifications when the checkbox is checked
                 if (showNotification)
                   Column(
                     children: [
                       DropdownButtonFormField<CustomNotification>(
                         hint: const Text('Select Custom Notification'),
-                        value: null,
-                        onChanged: (selectedNotification) {
-                          // Handle selection
+                        value: selectedNotification,
+                        onChanged: (CustomNotification? notification) {
+                          setState(() {
+                            selectedNotification = notification;
+                          });
                         },
                         items: customNotifications.isNotEmpty
                             ? customNotifications.map((notification) {
@@ -247,17 +294,31 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                           ),
                         ],
                       ),
-                      // Add option to create a new custom notification
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CreateNotificationForm(),
-                            ),
-                          );
-                        },
-                        child: const Text('Create New Custom Notification'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () => _deleteCustomNotification(),
+                            icon: const Icon(Icons.delete),
+                            label: const Text('Delete'),
+                          ),
+                          const SizedBox(width: 8.0),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CreateNotificationForm(),
+                                ),
+                              );
+                              loadCustomNotifications();
+                              setState(() {
+                                selectedNotification = null;
+                              });
+                            },
+                            child: const Text('Create New Notification'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -274,4 +335,3 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
     );
   }
 }
-

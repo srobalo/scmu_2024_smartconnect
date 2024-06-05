@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
@@ -14,14 +15,16 @@ class UserWidget extends StatefulWidget {
 }
 
 class _UserWidgetState extends State<UserWidget> {
-  late Stream<User?> _userStream;
+  late Stream<User?> _authStream;
+  late Stream<DocumentSnapshot> _userStream;
   TheUser? _theUser;
 
   @override
   void initState() {
     super.initState();
-    _userStream = FirebaseAuth.instance.authStateChanges();
+    _authStream = FirebaseAuth.instance.authStateChanges();
     _fetchTheUser();
+    _userStream = FirebaseFirestore.instance.collection('users').doc(_theUser?.id).snapshots();
   }
 
   @override
@@ -33,115 +36,125 @@ class _UserWidgetState extends State<UserWidget> {
     final String? id = await MyPreferences.loadData<String>("USER_ID");
     if (id == null || id.isEmpty) {
       print("Failed to load user id");
-      setState(() {
-        _theUser = null;
-      });
+      _updateUser(null);
     } else {
       print("[UserWidget] GetUser $id");
       final user = await UserCache.getUser(id);
       if(_theUser != user) {
-        setState(() {
-          _theUser = user;
-        });
+        _updateUser(user);
       }
     }
+  }
+
+  void _updateUser(TheUser? user) {
+    setState(() {
+      _theUser = user;
+    });
+    _userStream = FirebaseFirestore.instance.collection('users').doc(_theUser?.id).snapshots();
   }
 
   @override
   Widget build(BuildContext context) {
     print("[UserWidget] Building");
-    return StreamBuilder<User?>(
-      stream: _userStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container();
-        } else {
-          final user = snapshot.data;
-          if (user != null) {
-            _fetchTheUser();
-            // User is authenticated
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2, bottom: 2),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.transparent),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              if (_theUser != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        UserProfileScreen(user: _theUser!),
-                                  ),
-                                );
-                              }
-                            },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: backgroundColorTertiary, width: 3),
-                        ),
+    return Column(
+      children: [
+        StreamBuilder<User?>(
+          stream: _authStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container();
+            } else {
+              final user = snapshot.data;
+              if (user != null) {
+                _fetchTheUser();
+                // User is authenticated
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, bottom: 2),
                         child: Container(
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: backgroundColorSecondary, width: 1),
+                            border: Border.all(color: Colors.transparent),
                           ),
-                          child: Stack(
-                            alignment: Alignment.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundImage: (_theUser != null && _theUser!.imgurl.isNotEmpty)
-                                    ? NetworkImage(_theUser!.imgurl) as ImageProvider
-                                    : const AssetImage("assets/empty.png"),
-                              ),
-                              if (_theUser != null && _theUser!.imgurl.isEmpty)
-                                const Positioned.fill(
-                                  child: CircularProgressIndicator(),
+                              GestureDetector(
+                                onTap: () {
+                                  if (_theUser != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            UserProfileScreen(user: _theUser!),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    StreamBuilder<DocumentSnapshot>(
+                                      stream: _userStream,
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState == ConnectionState.waiting) {
+                                          return const CircularProgressIndicator();
+                                        } else if (snapshot.hasData) {
+                                          final data = snapshot.data!.data() as Map<String, dynamic>;
+                                          final imageUrl = data['imgurl'] ?? '';
+                                          return CircleAvatar(
+                                            radius: 30,
+                                            backgroundImage: imageUrl.isNotEmpty
+                                                ? NetworkImage(imageUrl)
+                                                : const AssetImage("assets/empty.png") as ImageProvider,
+                                          );
+                                        } else {
+                                          return const CircleAvatar(
+                                            radius: 30,
+                                            backgroundImage: AssetImage("assets/empty.png"),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    if (_theUser != null && _theUser!.imgurl.isEmpty)
+                                      const Positioned.fill(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                  ],
                                 ),
+                              ),
+                              const SizedBox(width: 6),
+                              _theUser != null
+                                  ? Text(
+                                '${_theUser?.firstname} ${_theUser?.lastname}',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  shadows: drawShadows(),
+                                ),
+                              )
+                                  : const Text(
+                                '',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                ),
+                              )
                             ],
                           ),
                         ),
                       ),
-                          ),
-                          const SizedBox(width: 6),
-                          _theUser != null ?
-                          Text(
-                            '${_theUser?.firstname} ${_theUser?.lastname}',
-                            style: TextStyle(
-                              fontSize: 24,
-                              shadows: drawShadows(),
-                            ),
-                          ):
-                          const Text(
-                            '',
-                            style: TextStyle(
-                              fontSize: 24,
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          } else {
-            // User is not authenticated
-            return Container();
-          }
-        }
-      },
+                );
+              } else {
+                return Container();
+              }
+            }
+          },
+        ),
+      ],
     );
   }
 }

@@ -450,5 +450,18 @@ class FirestoreService {
     }
   }
 
+  Future<void> deleteCustomNotificationById(String id) async {
+    await deleteDocument("customnotifications", id);
+  }
 
+  Future<void> updateUser(TheUser user) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.id)
+          .update(user.toMap());
+    } catch (e) {
+      print("Error updating user document: $e");
+    }
+  }
 }

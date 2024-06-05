@@ -1,6 +1,4 @@
 import 'dart:async';
-
-
 import '../defaults/default_values.dart';
 import '../firebase/firebasedb.dart';
 import '../objects/user.dart';
@@ -35,4 +33,3 @@ class CachedUser {
 
   CachedUser({required this.user, required this.timestamp});
 }
-

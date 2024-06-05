@@ -22,13 +22,13 @@ class ScenesScreen extends StatefulWidget {
 
 class _ScenesScreenState extends State<ScenesScreen> {
   Map<String, bool> sceneActive = {};
-  List<Scene> scenes = []; // Hold scenes after fetching
+  List<Scene> scenes = [];
   final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
     super.initState();
-    _fetchScenesFromFirebase(); // Fetch scenes on init
+    _fetchScenesFromFirebase();
   }
 
   Future<void> sendCommandToESP(String triggerCommand, String actionCommand,
@@ -191,7 +191,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SceneConfigurationScreen(),
+              builder: (context) => const SceneConfigurationScreen(),
             ),
           );
         },

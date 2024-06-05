@@ -5,21 +5,18 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
-import 'package:scmu_2024_smartconnect/utils/notification_toast.dart';
-import 'package:scmu_2024_smartconnect/widgets/qrcode_generator.dart';
 import 'package:scmu_2024_smartconnect/widgets/realtime_data_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../objects/device.dart';
-import '../utils/excuses.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
 import 'package:scmu_2024_smartconnect/utils/wifi_info.dart';
 import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
+import '../utils/excuses.dart';
 import '../widgets/permission_widget.dart';
 
 class ConfigurationScreen extends StatelessWidget {
-  const ConfigurationScreen({Key? key}) : super(key: key);
+  const ConfigurationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -75,10 +72,41 @@ class ConfigurationScreen extends StatelessWidget {
   }
 }
 
-class TestPanel extends StatelessWidget {
+class TestPanel extends StatefulWidget {
   final BuildContext context;
 
-  const TestPanel({Key? key, required this.context}) : super(key: key);
+  const TestPanel({super.key, required this.context});
+
+  @override
+  _TestPanelState createState() => _TestPanelState();
+}
+
+class _TestPanelState extends State<TestPanel> {
+  bool? _allowProfileAudio;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileAudioPreference();
+  }
+
+  Future<void> _loadProfileAudioPreference() async {
+    bool? allow = await MyPreferences.loadData<bool>("PROFILE_AUDIO");
+    if (allow == null) {
+      allow = true;
+      await MyPreferences.saveData<bool>("PROFILE_AUDIO", true);
+    }
+    setState(() {
+      _allowProfileAudio = allow;
+    });
+  }
+
+  Future<void> _setProfileAudioPreference(bool value) async {
+    await MyPreferences.saveData<bool>("PROFILE_AUDIO", value);
+    setState(() {
+      _allowProfileAudio = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +121,25 @@ class TestPanel extends StatelessWidget {
           },
           child: const Text('SHASM Permissions'),
         ),
+        const SizedBox(height: 16),
+        if (_allowProfileAudio != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Profile Sound: ",
+                style: TextStyle(fontSize: 16),
+              ),
+              Checkbox(
+                value: _allowProfileAudio,
+                onChanged: (bool? value) {
+                  if (value != null) {
+                    _setProfileAudioPreference(value);
+                  }
+                },
+              ),
+            ],
+          ),
         //ElevatedButton(onPressed: () async {await _requestNotificationTest();},child: const Text('Test Notification'),),
         //ElevatedButton(onPressed: () async {await _delayedNotification();},child: const Text('Test Delayed Notification'),),
         //ElevatedButton(onPressed: () async {await _requestDatabaseTest();},child: const Text('Test Notification Database'),),
@@ -100,7 +147,6 @@ class TestPanel extends StatelessWidget {
       ],
     );
   }
-
 
   Future<void> _requestPermissions(BuildContext ctx) async {
     final status = await Permission.location.request();

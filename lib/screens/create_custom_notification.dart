@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scmu_2024_smartconnect/objects/custom_notification.dart';
 
@@ -7,6 +8,8 @@ import '../defaults/default_values.dart';
 import '../utils/my_preferences.dart';
 
 class CreateNotificationForm extends StatefulWidget {
+  const CreateNotificationForm({super.key});
+
   @override
   _CreateNotificationFormState createState() => _CreateNotificationFormState();
 }
@@ -18,18 +21,19 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
   final _domainController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  Future<void> _createNotification() async {
+  Future<bool> _createNotification() async {
     if (_formKey.currentState!.validate()) {
       final String? userid = await MyPreferences.loadData<String>("USER_ID");
 
       if (userid == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User ID not found')),
+          const SnackBar(content: Text('User ID not found')),
         );
-        return;
+        return false;
       }
 
       final notification = CustomNotification(
+        id: '',
         userid: userid,
         title: _titleController.text,
         observation: _observationController.text,
@@ -38,23 +42,38 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
         timestamp: DateTime.now(),
       );
 
-      FirebaseFirestore.instance
-          .collection('customnotifications')
-          .add({
-        'userid': notification.userid,
-        'title': notification.title,
-        'observation': notification.observation,
-        'domain': notification.domain,
-        'description': notification.description,
-        'timestamp': notification.timestamp.toIso8601String(),
-      })
-          .then((value) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Notification created')),
-      ))
-          .catchError((error) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create notification: $error')),
-      ));
+      try {
+        DocumentReference docRef = await FirebaseFirestore.instance
+            .collection('customnotifications')
+            .add({
+          'userid': notification.userid,
+          'title': notification.title,
+          'observation': notification.observation,
+          'domain': notification.domain,
+          'description': notification.description,
+          'timestamp': notification.timestamp.toIso8601String(),
+        });
+
+        // Get the assigned id
+        String documentId = docRef.id;
+
+        // Update the document with the assigned id
+        await docRef.update({'id': documentId});
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification created')),
+        );
+
+        return true; // Return true to indicate success
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create notification: $error')),
+        );
+        return false; // Return false to indicate failure
+      }
     }
+
+    return false; // Return false if form validation fails
   }
 
   void _cancel() {
@@ -93,11 +112,11 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
@@ -200,22 +219,22 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
                       ElevatedButton(
-                        onPressed: _createNotification,
-                        child: Text('Create'),
+                        onPressed: _cancel,
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                         ),
+                        child: const Text('Clear'),
                       ),
                       ElevatedButton(
-                        onPressed: _cancel,
-                        child: Text('Cancel'),
+                        onPressed: _createNotification,
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                         ),
+                        child: const Text('Create'),
                       ),
                     ],
                   ),
