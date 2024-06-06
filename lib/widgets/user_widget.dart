@@ -101,7 +101,7 @@ class _UserWidgetState extends State<UserWidget> {
                                       stream: _userStream,
                                       builder: (context, snapshot) {
                                         if (snapshot.connectionState == ConnectionState.waiting) {
-                                          return const CircularProgressIndicator();
+                                          return Container();
                                         } else if (snapshot.hasData) {
                                           final data = snapshot.data!.data() as Map<String, dynamic>;
                                           final imageUrl = data['imgurl'] ?? '';

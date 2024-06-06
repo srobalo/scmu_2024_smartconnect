@@ -464,4 +464,20 @@ class FirestoreService {
       print("Error updating user document: $e");
     }
   }
+
+  Future<DocumentSnapshot?> getUserByUsername(String username) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection("users")
+          .where("username", isEqualTo: username)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error retrieving user document by username: $e");
+      return null;
+    }
+  }
 }

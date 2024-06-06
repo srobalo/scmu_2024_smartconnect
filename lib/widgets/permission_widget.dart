@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 
 class PermissionStatusWidget extends StatefulWidget {
   final bool visible;
@@ -24,17 +25,26 @@ class _PermissionStatusWidgetState extends State<PermissionStatusWidget> {
     _checkPermissions();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _checkPermissions() async {
-    for (Permission permission in _permissionsStatus.keys) {
-      final status = await permission.status;
-      if (!status.isGranted) {
-        await _requestPermission(permission);
-      } else {
-        setState(() {
-          _permissionsStatus[permission] = true;
-        });
+    bool? firstExe = await MyPreferences.loadData<bool>("FIRST_RUN");
+      for (Permission permission in _permissionsStatus.keys) {
+        final status = await permission.status;
+        if (!status.isGranted) {
+          if(firstExe == null || firstExe) {
+            await _requestPermission(permission);
+          }
+        } else {
+          setState(() {
+            _permissionsStatus[permission] = true;
+          });
+        }
+      await MyPreferences.saveData("FIRST_RUN", false);
       }
-    }
   }
 
   Future<void> _requestPermission(Permission permission) async {
@@ -43,7 +53,7 @@ class _PermissionStatusWidgetState extends State<PermissionStatusWidget> {
       _permissionsStatus[permission] = status.isGranted;
     });
     if (status.isPermanentlyDenied) {
-      openAppSettings();
+      await openAppSettings();
     }
   }
 

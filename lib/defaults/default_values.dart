@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-
+//
+const String buildDateString = '07-06-2024';
+//
 const int devicePort = 80;
 const String deviceGateway = "192.168.4.1";
 const int deviceSearchTimerSeconds = 7;
 //
 const String firebaseRealtimeDBUrl = 'https://scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app/';
 //
-const defaultUserImage = "https://friconix.com/png/fi-cnsuxx-user-circle.png";
+const defaultUserImage = "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_640.png";
 const int cacheHoldFetchInSeconds = 15;
 //
 Color primaryColor = Colors.blue[900] as Color;

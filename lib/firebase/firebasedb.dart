@@ -125,4 +125,7 @@ class FirebaseDB {
     return await _firestoreService.updateUser(user);
   }
 
+  Future<DocumentSnapshot?> getUserByUsername(String emailOrUsername) async {
+    return await _firestoreService.getUserByUsername(emailOrUsername);
+  }
 }

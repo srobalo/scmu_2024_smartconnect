@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+//
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/screens/configuration_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/devices_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/metric_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scmu_2024_smartconnect/screens/registration_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/user_profile_screen.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
@@ -14,9 +13,11 @@ import 'package:scmu_2024_smartconnect/widgets/permission_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/sun_and_moon.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_welcome_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_widget.dart';
-import 'firebase_options.dart';
 import 'package:scmu_2024_smartconnect/notification_manager.dart';
-
+//
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 import 'objects/user.dart';
 
 void main() async {
@@ -62,7 +63,7 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/':
-            return MaterialPageRoute(builder: (context) => MainPage());
+            return MaterialPageRoute(builder: (context) => const MainPage());
           case '/login':
             return MaterialPageRoute(builder: (context) => LoginScreen());
           case '/configuration':

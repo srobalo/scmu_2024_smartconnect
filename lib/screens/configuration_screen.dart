@@ -12,6 +12,7 @@ import 'package:scmu_2024_smartconnect/utils/wifi_info.dart';
 import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
+import '../defaults/default_values.dart';
 import '../utils/excuses.dart';
 import '../widgets/permission_widget.dart';
 
@@ -20,7 +21,14 @@ class ConfigurationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String buildDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    String buildDate;
+
+    try {
+      DateTime dateTime = DateFormat('dd-MM-yyyy').parse(buildDateString);
+      buildDate = DateFormat('dd-MM-yyyy').format(dateTime);
+    } catch (e) {
+      buildDate = 'Undefined';
+    }
     return FutureBuilder<PackageInfo>(
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
@@ -115,12 +123,7 @@ class _TestPanelState extends State<TestPanel> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const PermissionStatusWidget(visible: true),
-        ElevatedButton(
-          onPressed: () async {
-            await _requestPermissions(context);
-          },
-          child: const Text('SHASM Permissions'),
-        ),
+        //ElevatedButton(onPressed: () async {await _requestPermissions(context);}, child: const Text('SHASM Permissions'),),
         const SizedBox(height: 16),
         if (_allowProfileAudio != null)
           Row(
