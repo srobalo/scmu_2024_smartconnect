@@ -51,7 +51,7 @@ class ConfigurationScreen extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     height: 60,
-                    child: RealtimeDataWidget(),
+                    child: RealtimeDataWidget(path: "Device",visible: true),
                   ),
                 ),
                 const Spacer(), // Pushes the following widgets to the bottom

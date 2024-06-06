@@ -6,7 +6,14 @@ import 'package:firebase_database/firebase_database.dart';
 import '../defaults/default_values.dart';
 
 class RealtimeDataWidget extends StatefulWidget {
-  const RealtimeDataWidget({super.key});
+  final String path;
+  final bool visible;
+
+  const RealtimeDataWidget({
+    super.key,
+    required this.path,
+    required this.visible,
+  });
 
   @override
   _RealtimeDataWidgetState createState() => _RealtimeDataWidgetState();
@@ -59,7 +66,7 @@ class _RealtimeDataWidgetState extends State<RealtimeDataWidget> {
       return;
     }
 
-    _dataSubscription = databaseReference.child('sensorData/trigger').onValue.listen((event) {
+    _dataSubscription = databaseReference.child(widget.path).onValue.listen((event) {
       if (!mounted) {
         return;
       }
@@ -76,6 +83,10 @@ class _RealtimeDataWidgetState extends State<RealtimeDataWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.visible) {
+      return Container();
+    }
+
     return Center(
       child: SingleChildScrollView(
         child: Column(

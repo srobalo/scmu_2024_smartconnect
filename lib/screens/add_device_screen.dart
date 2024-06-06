@@ -80,7 +80,9 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       WiFiScan.instance.onScannedResultsAvailable.listen((results) {
         setState(() {
           results.sort((a, b) => b.level.compareTo(a.level));
-          _wifiNetworks = results.where((element) => element.ssid.contains("SHASM")).toList();
+          _wifiNetworks =
+              results.where((element) => element.ssid.contains("SHASM"))
+                  .toList();
           _isSearching = false;
         });
       });
@@ -167,20 +169,20 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
               onPressed: _isSearching ? null : _startSearching,
               child: _isSearching
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+              )
                   : const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.search),
-                        SizedBox(width: 8),
-                        Text('Scan for Devices'),
-                      ],
-                    ),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.search),
+                  SizedBox(width: 8),
+                  Text('Scan for Devices'),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             Expanded(
@@ -202,7 +204,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                           title: Text(
                               _wifiNetworks[index].ssid ?? 'SSID desconhecido'),
                           subtitle:
-                              Text('Signal: ${_wifiNetworks[index].level} dBm'),
+                          Text('Signal: ${_wifiNetworks[index].level} dBm'),
                           trailing: ElevatedButton(
                             onPressed: () {
                               connectToDevice(_wifiNetworks[index]);
@@ -223,7 +225,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   }
 
   Future<void> _openBrowser(String target) async {
-    String toOpen = 'http//$target:$devicePort';
+    String toOpen = 'http://$target:$devicePort';
     final Uri url = Uri.parse(toOpen);
     NotificationToast.showToast(context, 'Connecting to $toOpen');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -231,21 +233,16 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     }
   }
 
-  // Função para abrir a URL no navegador do dispositivo
   _launchURL(String ssid) async {
+    //await _openBrowser(deviceGateway);
+    final id = await MyPreferences.loadData<String>("USER_ID");
+    String ip = (await NetworkInfo().getWifiGatewayIP()) ?? deviceGateway;
+    NotificationToast.showToast(context, 'Communicating with $ip');
 
-    await _openBrowser(deviceGateway);
-    sleep(const Duration(seconds: 5));
 
-    String url = (await NetworkInfo().getWifiGatewayIP()) ?? deviceGateway;
-
-    // Uri ip = Uri.parse("$url:$devicePort");
-    final Uri ip = Uri.parse("http://$deviceGateway");
-    if (!await launchUrl(ip, mode: LaunchMode.externalApplication)) {
-      NotificationToast.showToast(context, 'Failed to connect $ip');
-    } else {
-      final response = await http.get(Uri.parse('http://$ip/mac'));
-      final id = await MyPreferences.loadData<String>("USER_ID");
+      final Uri url = Uri.parse("http://$deviceGateway/mac");
+      final response = await http.get(url);
+      NotificationToast.showToast(context, 'Negotiating with $ip}');
       if (response.statusCode == 200) {
         setState(() async {
           String mac = response.body;
@@ -253,40 +250,40 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           Device device = Device(
               id: '',
               ownerId: id ?? 'undefined',
-            name: '$id: $ssid',
-            domain: 'SHASM',
-            // icon: 'assets/smart_bulb.png',
-            mac: mac,
-            ip: ip.toString(),
-            // state: DeviceState.off,
-            capabilities: {}
+              name: '$id: $ssid',
+              domain: 'SHASM',
+              // icon: 'assets/smart_bulb.png',
+              mac: mac,
+              ip: '',
+              // state: DeviceState.off,
+              capabilities: {}
           );
-         Device? d = await FirestoreService().createDeviceIfNotExists(device);  
-         if(  d != null){
-           if(d.ownerId == id){
-             final payload= {
-               'owner': d.ownerId,
-               'id': id,
-               'mac': mac
-             };
-             MyPreferences.saveData("capabilities", generateJwt(payload: payload));
-           }else{
-             List<String>? p = d.capabilities[id];
-             final newPayload = {
-               'owner': d.ownerId,
-               'id': id,
-               'mac': mac,
-               "cap":p
-             };
-             MyPreferences.saveData("capabilities", generateJwt(payload: newPayload));
-           }
-         }
+          Device? d = await FirestoreService().createDeviceIfNotExists(device);
+          if (d != null) {
+            if (d.ownerId == id) {
+              final payload = {
+                'owner': d.ownerId,
+                'id': id,
+                'mac': mac
+              };
+              MyPreferences.saveData("capabilities", generateJwt(payload: payload));
+            } else {
+              List<String>? p = d.capabilities[id];
+              final newPayload = {
+                'owner': d.ownerId,
+                'id': id,
+                'mac': mac,
+                "cap": p
+              };
+              MyPreferences.saveData("capabilities", generateJwt(payload: newPayload));
+            }
+          }
         });
         NotificationToast.showToast(context, 'MAC ${response.body}');
-      } else {
-        NotificationToast.showToast(context, 'Failed to load MAC address');
+      }else {
+        NotificationToast.showToast(
+            context, 'Device Error: ${response.statusCode} ${response.body}');
       }
-    }
   }
 
   Future<void> sendCredentialsAndConnect(String ssid, String password) async {
@@ -297,9 +294,8 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         password: password, joinOnce: true, security: NetworkSecurity.WPA);
     if (success) {
       print('Conectado a $ssid');
-      await _launchURL( ssid);
-
-      NotificationToast.showToast(context, 'Connected to $ssid successfully');
+      await _launchURL(ssid);
+      await connectToDeviceToWifi();
     } else {
       print('Falha ao conectar a $ssid');
       NotificationToast.showToast(context, 'Failed to connect to $ssid');
@@ -356,42 +352,96 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       },
     );
   }
-}
 
-//
-// Future<int> _connectionProcess(
-//     String ipAddress, String ssid, String password) async {
-//   if (ipAddress.isEmpty || ssid.isEmpty || password.isEmpty) {
-//     return 0; // Return false if any parameter is empty
-//   }
-//
-//   final Map<String, dynamic> payload = {
-//     'ssid': ssid,
-//     'password': password,
-//   };
-//
-//   final url = Uri.parse(
-//       'http://$ipAddress:$devicePort'); // Assuming the device expects requests at the root URL
-//
-//   try {
-//     // Send the HTTP POST request with the JSON payload
-//     final response = await http.post(
-//       url,
-//       body: payload,
-//     );
-//
-//     // Check if the request was successful
-//     if (response.statusCode == 200) {
-//       // Request was successful
-//       return 1;
-//     } else {
-//       // Request failed
-//       print('Failed to send credentials. Status code: ${response.statusCode}');
-//       return 2;
-//     }
-//   } catch (e) {
-//     // An error occurred while sending the request
-//     print('Error sending request: $e');
-//     return 3;
-//   }
-// }
+  Future<void> connectToDeviceToWifi() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String ssid = '';
+        String password = '';
+
+        return AlertDialog(
+          title: const Text('Connect to Device'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'SSID'),
+                style: const TextStyle(color: Colors.black),
+                onChanged: (value) {
+                  ssid = value;
+                },
+              ),
+              TextField(
+                decoration: const InputDecoration(labelText: 'Password'),
+                style: const TextStyle(color: Colors.black),
+                onChanged: (value) {
+                  password = value;
+                },
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                _connectionProcess(ssid, password);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Connect Device to Wifi',
+                style: TextStyle(color: Colors.teal),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<int> _connectionProcess(String ssid, String password) async {
+    if (ssid.isEmpty || password.isEmpty) {
+      return 0;
+    }
+
+    final Map<String, dynamic> payload = {
+      'ssid': ssid,
+      'password': password,
+    };
+
+    try {
+      // Use NetworkInfo to get the gateway IP
+      final gatewayIp = await NetworkInfo().getWifiGatewayIP();
+      if (gatewayIp == null) {
+        print('Failed to retrieve gateway IP');
+        return 4;
+      }
+
+      final url = Uri.parse('http://$gatewayIp:$devicePort/wifi');
+
+      // Send the HTTP POST request with the JSON payload
+      final response = await http.post(
+        url,
+        body: payload,
+      );
+
+      if (response.statusCode == 200) {
+        NotificationToast.showToast(context, 'Device connected to $ssid successfully');
+        return 1;
+      } else {
+        NotificationToast.showToast(context, 'Failed to send credentials. Status code: ${response.statusCode}');
+        print('Failed to send credentials. Status code: ${response.statusCode}');
+        return 2;
+      }
+    } catch (e) {
+      print('Error sending request: $e');
+      return 3;
+    }
+  }
+
+}
