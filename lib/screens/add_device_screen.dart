@@ -224,68 +224,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     );
   }
 
-  Future<void> _openBrowser(String target) async {
-    String toOpen = 'http://$target:$devicePort';
-    final Uri url = Uri.parse(toOpen);
-    NotificationToast.showToast(context, 'Connecting to $toOpen');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      NotificationToast.showToast(context, 'Failed to connect $url');
-    }
-  }
-
-  _launchURL(String ssid) async {
-    //await _openBrowser(deviceGateway);
-    final id = await MyPreferences.loadData<String>("USER_ID");
-    String ip = (await NetworkInfo().getWifiGatewayIP()) ?? deviceGateway;
-    NotificationToast.showToast(context, 'Communicating with $ip');
-
-
-      final Uri url = Uri.parse("http://$deviceGateway/mac");
-      final response = await http.get(url);
-      NotificationToast.showToast(context, 'Negotiating with $ip}');
-      if (response.statusCode == 200) {
-        setState(() async {
-          String mac = response.body;
-          print('MAC ${mac}');
-          Device device = Device(
-              id: '',
-              ownerId: id ?? 'undefined',
-              name: '$id: $ssid',
-              domain: 'SHASM',
-              // icon: 'assets/smart_bulb.png',
-              mac: mac,
-              ip: '',
-              // state: DeviceState.off,
-              capabilities: {}
-          );
-          Device? d = await FirestoreService().createDeviceIfNotExists(device);
-          if (d != null) {
-            if (d.ownerId == id) {
-              final payload = {
-                'owner': d.ownerId,
-                'id': id,
-                'mac': mac
-              };
-              MyPreferences.saveData("capabilities", generateJwt(payload: payload));
-            } else {
-              List<String>? p = d.capabilities[id];
-              final newPayload = {
-                'owner': d.ownerId,
-                'id': id,
-                'mac': mac,
-                "cap": p
-              };
-              MyPreferences.saveData("capabilities", generateJwt(payload: newPayload));
-            }
-          }
-        });
-        NotificationToast.showToast(context, 'MAC ${response.body}');
-      }else {
-        NotificationToast.showToast(
-            context, 'Device Error: ${response.statusCode} ${response.body}');
-      }
-  }
-
   Future<void> sendCredentialsAndConnect(String ssid, String password) async {
     // Print debug information
     print('SSID: $ssid');
@@ -294,7 +232,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         password: password, joinOnce: true, security: NetworkSecurity.WPA);
     if (success) {
       print('Conectado a $ssid');
-      await _launchURL(ssid);
       await connectToDeviceToWifi();
     } else {
       print('Falha ao conectar a $ssid');

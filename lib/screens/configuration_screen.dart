@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
@@ -13,8 +14,14 @@ import 'package:scmu_2024_smartconnect/firebase/firebasedb.dart';
 import 'package:scmu_2024_smartconnect/objects/event_notification.dart';
 
 import '../defaults/default_values.dart';
+import '../firebase/firestore_service.dart';
+import '../objects/device.dart';
 import '../utils/excuses.dart';
+import '../utils/jwt.dart';
+import '../utils/notification_toast.dart';
+import '../utils/realtime_data_service.dart';
 import '../widgets/permission_widget.dart';
+import 'package:http/http.dart' as http;
 
 class ConfigurationScreen extends StatelessWidget {
   const ConfigurationScreen({super.key});
@@ -51,7 +58,7 @@ class ConfigurationScreen extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     height: 60,
-                    child: RealtimeDataWidget(path: "Device",visible: true),
+                    child: RealtimeDataWidget(path: "Device", visible: true),
                   ),
                 ),
                 const Spacer(), // Pushes the following widgets to the bottom
@@ -66,7 +73,8 @@ class ConfigurationScreen extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: Text(
-                      '📱 Version: ${packageInfo.version}     Last Updated: $buildDate',
+                      '📱 Version: ${packageInfo
+                          .version}     Last Updated: $buildDate',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -146,10 +154,13 @@ class _TestPanelState extends State<TestPanel> {
         //ElevatedButton(onPressed: () async {await _requestNotificationTest();},child: const Text('Test Notification'),),
         //ElevatedButton(onPressed: () async {await _delayedNotification();},child: const Text('Test Delayed Notification'),),
         //ElevatedButton(onPressed: () async {await _requestDatabaseTest();},child: const Text('Test Notification Database'),),
-        //ElevatedButton(onPressed: () async {await _requestBrowserTest();},child: const Text('Test Browser'),),
+        ElevatedButton(onPressed: () async {
+          await _requestBrowserTest();
+        }, child: const Text('Connect ESP to Network'),),
       ],
     );
   }
+
 
   Future<void> _requestPermissions(BuildContext ctx) async {
     final status = await Permission.location.request();
@@ -201,7 +212,11 @@ class _TestPanelState extends State<TestPanel> {
     Timer(const Duration(seconds: 10), () async {
       late String excuse = generateExcuse();
       await notificationManager.showNotification(
-        id: DateTime.now().second + DateTime.now().millisecond,
+        id: DateTime
+            .now()
+            .second + DateTime
+            .now()
+            .millisecond,
         title: 'Notification Test',
         body: excuse,
       );
@@ -212,26 +227,80 @@ class _TestPanelState extends State<TestPanel> {
     final NotificationManager notificationManager = NotificationManager();
     late String excuse = generateExcuse();
     await notificationManager.showNotification(
-      id: DateTime.now().second + DateTime.now().millisecond,
+      id: DateTime
+          .now()
+          .second + DateTime
+          .now()
+          .millisecond,
       title: 'Notification Test',
       body: excuse,
     );
   }
 
   Future<void> _requestBrowserTest() async {
-    final Uri url = Uri.parse('https://flutter.dev');
+    final Uri url = Uri.parse('http://$deviceGateway');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url');
+      NotificationToast.showToast(context,'Could not launch $url');
+    }
+    final id = await MyPreferences.loadData<String>("USER_ID");
+    String ip = await RealtimeDataService(path: "Device/IP").getLatestData();
+    String mac = await  RealtimeDataService(path: "Device/MAC").getLatestData();
+    print('MAC ${mac}');
+    NotificationToast.showToast(context, 'Negotiating with $ip}');
+    if (ip != "No Data" && mac != "No Data") {
+      setState(() async {
+        Device device = Device(
+          id: '',
+          ownerId: id ?? 'undefined',
+          name: 'SHASM',
+          domain: 'SHASM',
+          mac: mac,
+          ip: ip,
+            capabilities: {}
+        );
+
+        Device? d = await FirestoreService().createDeviceIfNotExists(device);
+        if( d != null) {
+          if (d.ownerId == id) {
+            final payload = {
+              'owner': d.ownerId,
+              'id': id,
+              'mac': mac
+            };
+            MyPreferences.saveData("capabilities", generateJwt(payload: payload));
+          }
+          else {
+            List<String>? p = d.capabilities[id];
+            final newPayload = {
+              'owner': d.ownerId,
+              'id': id,
+              'mac': mac,
+              "cap": p
+            };
+            MyPreferences.saveData("capabilities", generateJwt(payload: newPayload));
+          }
+        }
+      });
+      NotificationToast.showToast(context, 'MAC: $mac');
+
+    } else {
+        NotificationToast.showToast(context, 'Device Error: $ip $mac');
     }
   }
+
 
   Future<void> _requestDatabaseTest() async {
     String? userid = await MyPreferences.loadData<String>("USER_ID");
     EventNotification notification = EventNotification(
-      id: (DateTime.now().second + DateTime.now().millisecond).toString(),
+      id: (DateTime
+          .now()
+          .second + DateTime
+          .now()
+          .millisecond).toString(),
       userid: userid!,
       title: 'A notification test',
-      domain: 'Testing', //could be Kitchen/Living Room/Vacation House etc
+      domain: 'Testing',
+      //could be Kitchen/Living Room/Vacation House etc
       description: generateExcuse(),
       observation: 'Observation',
       timestamp: DateTime.now(),

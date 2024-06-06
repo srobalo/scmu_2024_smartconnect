@@ -2,10 +2,12 @@
 #include <ESP32Firebase.h>
 #include <WiFiManager.h>
 
-const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app";
 //const char* firebaseAuth  = "QbSDiFbhpZLFahaXUakYKmF2KCtD9DvZgpCutLw8";
 
-Firebase firebase(firebaseHost);
+const char* ssid = "SHASM";
+const char* password = "password";
+const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app";
+
 
 WiFiServer server(80);
 int ledPin = 21;
@@ -13,6 +15,8 @@ int photoResistorPin = 34;
 static const int servoPin = 13;
 String MAC;
 IPAddress IP;
+Firebase firebase(firebaseHost);
+
 //Servo servo1;
 void setup() {
   WiFi.mode(WIFI_STA);
@@ -47,10 +51,19 @@ void setup() {
   firebase.setInt("Example/setInt", 123);
   firebase.setFloat("Example/setFloat", 45.32);
 
-  MAC = WiFi.macAddress();
-  IP = WiFi.localIP();
+  firebase.setString("Device/MAC", WiFi.macAddress());
+  firebase.setString("Device/IP", WiFi.localIP().toString());
   server.begin();
 
+}
+
+
+int sendToFirebaseString(const String& path, const String& value){
+  return firebase.setString(path, value);
+}
+
+int sendToFirebaseInt(const String& path, const int& value){
+  return firebase.setInt(path, value);
 }
 
 void loop() {
@@ -64,7 +77,8 @@ void loop() {
     Serial.print("Photoresistor level sent to Firebase: ");
     Serial.println(lightLevel);
   }
-  if (client) {                     // if you get a client,
+  if (client) {  
+    Serial.println(WiFi.localIP())  ;                 // if you get a client,
     Serial.println("New Client.");  // print a message out the serial port
     String currentLine = "";        // make a String to hold incoming data from the client
     while (client.connected()) {    // loop while the client's connected
@@ -92,17 +106,7 @@ void loop() {
             // break out of the while loop:
             break;
           } else {  // if you got a newline, then clear currentLine:
-             if (currentLine.startsWith("GET /mac")) {
-              client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
-            client.println();
-              client.println(MAC);
-             }else if(currentLine.startsWith("GET /ip")){
-              client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
-            client.println();
-              client.println(IP);
-             }else if (currentLine.startsWith("GET /3/on")) {
+              if (currentLine.startsWith("GET /3/on")) {
               Serial.println("Turning Backdoor ON (Mover o servo)");
               // Add code to perform the action
             } else if (currentLine.startsWith("GET /3/off")) {
