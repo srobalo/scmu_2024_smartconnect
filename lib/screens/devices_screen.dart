@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/screens/scenes_screen.dart';
 import 'package:scmu_2024_smartconnect/three_state_switch.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
+import 'package:scmu_2024_smartconnect/utils/realtime_data_service.dart';
 import '../defaults/default_values.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -69,6 +70,7 @@ class _DevicesScreenState extends State<DevicesScreen>
   void  sendCommand(
       String actuatorId, String commandAction, String deviceIp) async {
     try {
+      final deviceIp = await RealtimeDataService(path: "Device/IP").getLatestData();
       final url = Uri.parse('http://${deviceIp}/${actuatorId}/${commandAction}');
       final response = await http.get(url);
       if (response.statusCode == 200) {
