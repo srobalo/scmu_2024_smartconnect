@@ -55,8 +55,6 @@ void setup() {
     Serial.print("IP Address: ");  // Print the IP address to the serial monitor
     Serial.println(WiFi.localIP());
 
-    firebase.setString("Device/MAC", WiFi.macAddress());
-    firebase.setString("Device/IP", WiFi.localIP().toString());
 
     server.begin();                    // Start the server
     pinMode(photoResistorPin, INPUT);  // Set photoresistor pin as input
@@ -64,6 +62,13 @@ void setup() {
     // Initialize a NTPClient to get time
     timeClient.begin();
     timeClient.setTimeOffset(3600);
+    
+timeClient.update();
+    long currentTime = timeClient.getEpochTime();
+    String formattedTime = timeClient.getFormattedTime();
+    firebase.setString("Device/MAC", WiFi.macAddress());
+    firebase.setString("Device/IP", WiFi.localIP().toString());
+          firebase.setString("Device/timestamp", formattedTime);
 }
 
 void loop() {
