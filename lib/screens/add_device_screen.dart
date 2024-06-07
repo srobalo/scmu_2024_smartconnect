@@ -14,6 +14,8 @@ import '../utils/realtime_data_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
+import '../widgets/realtime_data_widget.dart';
+
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({Key? key}) : super(key: key);
 
@@ -90,9 +92,16 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            const Center(
+              child: SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: RealtimeDataWidget(path: "Device", visible: true),
+              ),
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Visibility(
-                  visible: _network == "SHASM",
+                  visible: _network!.contains("SHASM"),
                   child: ElevatedButton(
                     onPressed: () async {
                       await _requestBrowserTest();
@@ -101,7 +110,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                   )
               ),
               Visibility(
-                  visible: _network != null && _network != "SHASM",
+                  visible: _network!.isNotEmpty && !(_network!.contains("SHASM")),
                   child: ElevatedButton(
                     onPressed: () async {
                       await getPermission();
@@ -122,11 +131,15 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 
   }
 
-  getPermission() async {
+  Future<void> getPermission() async {
+    NotificationToast.showToast(context, 'Asking for permissions');
     final user_id = await MyPreferences.loadData<String>("USER_ID");
     String ip = await RealtimeDataService(path: "Device/IP").getLatestData();
+    NotificationToast.showToast(context, '$user_id $ip');
     String mac = await RealtimeDataService(path: "Device/MAC").getLatestData();
-    if (ip != "No Data" && mac != "No Data") {
+    NotificationToast.showToast(context, '$user_id $mac');
+    if (ip.isNotEmpty && mac.isNotEmpty) {
+      NotificationToast.showToast(context, 'Granted to $mac on $ip');
       setState(() async {
         Device device = Device(
             id: '',
@@ -141,8 +154,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         if (d != null) {
           if (d.ownerId == user_id) {
             final payload = {'owner': d.ownerId, 'id': user_id, 'mac': mac};
-            MyPreferences.saveData(
-                "capabilities", generateJwt(payload: payload));
+            await MyPreferences.saveData("capabilities", generateJwt(payload: payload));
           } else {
             List<String>? p = d.capabilities[user_id];
             final newPayload = {
@@ -151,9 +163,9 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
               'mac': mac,
               "cap": p
             };
-            MyPreferences.saveData(
-                "capabilities", generateJwt(payload: newPayload));
+            await MyPreferences.saveData("capabilities", generateJwt(payload: newPayload));
           }
+          NotificationToast.showToast(context, 'Granted to $mac on $ip');
         }
       });
       NotificationToast.showToast(context, 'Connected to MAC: $mac');
