@@ -1,188 +1,263 @@
-// #include <WiFi.h>  // Include WiFi library only once
-// #include <WiFiClient.h>
-// #include <ESP32Servo.h>
+#include <WiFiManager.h>
+#include <ESP32Servo.h>
+#include <ESP32Firebase.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
-// const char* ssid = "AccessPoint";
-// const char* password = "00000001";
 
-// Servo myServo;
-// int photoResistorPin = 34;
-// int servoPin = 13;  // Define a pin for the servo
-// int motionSensorPin = 12;
-// int ledPin = 2;
+// WiFiUDP instance for the NTP client
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
+#define HISTORY_LENGTH 5  // Number of readings to keep track of
 
-// bool ledEnabled_motion = false;
-// bool ledEnabled_photoresistor = false;
-// bool lightSceneEnabled = false;  // Flag to control light scene activation
-// bool motionSensorEnabled = false;
-// WiFiServer server(80);  // Create a server that listens on port 80
 
-// void setup() {
-//   Serial.begin(9600);  // Start serial communication at 9600 baud rate
-//   while (!Serial)
-//     ;  // Wait for serial port to connect - necessary for ESP32
+const char* ssid = "SHASM";
+const char* password = "password";
+const char* firebaseHost = "scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app";
 
-//   myServo.attach(servoPin);  // Attach servo to defined pin
-//   pinMode(motionSensorPin, INPUT);
-//   pinMode(ledPin, OUTPUT);
+Servo myServo;
+int photoResistorPin = 34;
+int servoPin = 13;  // Define a pin for the servo
+int motionSensorPin = 12;
+int ledPin = 32;
 
-//   WiFi.begin(ssid, password);              // Start WiFi connection
-//   while (WiFi.status() != WL_CONNECTED) {  // Wait for the connection to establish
-//     delay(500);
-//     Serial.println("Connecting to WiFi...");
-//   }
-//   Serial.println("Connected to WiFi");
-//   Serial.print("IP Address: ");  // Print the IP address to the serial monitor
-//   Serial.println(WiFi.localIP());
+bool ledEnabled_motion = false;
+bool ledEnabled_photoresistor = false;
+bool lightSceneEnabled = false;  // Flag to control light scene activation
+bool motionSensorEnabled = false;
+WiFiServer server(80);  // Create a server that listens on port 80
 
-//   server.begin();                    // Start the server
-//   pinMode(photoResistorPin, INPUT);  // Set photoresistor pin as input
-// }
+Firebase firebase(firebaseHost);
 
-// void loop() {
-//   scene();  // Handle client connections and sensor checking
-// }
+void setup() {
+    Serial.begin(9600);  // Start serial communication at 9600 baud rate
+    while (!Serial)
+        ;  // Wait for serial port to connect - necessary for ESP32
 
-// void scene() {
-//   WiFiClient client = server.available();  // Listen for incoming clients
-//   if (client) {
-//     Serial.println("New Client Connected");
-//     String currentLine = "";  // Make a String to hold incoming data from the client
-//     while (client.connected()) {
-//       if (client.available()) {
-//         char c = client.read();  // Read a byte
-//         Serial.write(c);         // Echo it back to the serial monitor
-//         if (c == '\n') {         // If the byte is a newline character
-//           // Check the current line for a GET request
-//           if (currentLine.startsWith("GET /servo/photoresistor/on")) {
-//             lightSceneEnabled = true;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("Light scene enabled");
-//             client.println();
-//             Serial.println("Light scene enabled");
-//             break;
-//           } else if (currentLine.startsWith("GET /servo/photoresistor/off")) {
-//             lightSceneEnabled = false;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("Light scene disabled");
-//             client.println();
-//             Serial.println("Light scene disabled");
-//             break;
-//           } else if (currentLine.startsWith("GET /servo/motionSensor/on")) {
-//             motionSensorEnabled = true;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("Motion sensor enabled");
-//             client.println();
-//             Serial.println("Motion sensor enabled");
-//             break;
-//           } else if (currentLine.startsWith("GET /servo/motionSensor/off")) {
-//             motionSensorEnabled = false;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("Motion sensor disabled");
-//             client.println();
-//             Serial.println("Motion sensor disabled");
-//             break;
-//           } else if (currentLine.startsWith("GET /led/photoresistor/on")) {
-//             ledEnabled_photoresistor = true;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("LED control enabled");
-//             client.println();
-//             Serial.println("LED control enabled");
-//             break;
-//           } else if (currentLine.startsWith("GET /led/photoresistor/off")) {
-//             ledEnabled_photoresistor = false;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("LED control photoresistor disabled");
-//             client.println();
-//             Serial.println("LED control photoresistor disabled");
-//             break;
-//           } else if (currentLine.startsWith("GET /led/motionSensor/on")) {
-//             ledEnabled_motion = true;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("LED control motion enabled");
-//             client.println();
-//             Serial.println("LED control motion enabled");
-//             break;
-//           } else if (currentLine.startsWith("GET /led/motionSensor/off")) {
-//             ledEnabled_motion = false;
-//             client.println("HTTP/1.1 200 OK");
-//             client.println("Content-type: text/plain");
-//             client.println();
-//             client.println("LED control motion disabled");
-//             client.println();
-//             Serial.println("LED control motion disabled");
-//             break;
-//           }
-//           currentLine = "";      // Clear the currentLine
-//         } else if (c != '\r') {  // If the byte is not a carriage return character
-//           currentLine += c;      // Add it to the end of the currentLine
-//         }
-//       }
-//     }
-//     client.stop();  // Close the connection
-//     Serial.println("Client Disconnected");
-//   }
-//   checkSensors();  // Function to check the sensors
-// }
+    myServo.attach(servoPin);  // Attach servo to defined pin
+    pinMode(motionSensorPin, INPUT);
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, LOW);
+    WiFi.mode(WIFI_STA);
+    WiFiManager wm;
+    wm.resetSettings();
+    wm.setConfigPortalTimeout(300);
+    if (!wm.autoConnect("SHASM", "password")) {
+        Serial.println("Failed to connect");
+        ESP.restart();
+        delay(1000);
+    }
+    while (WiFi.status() != WL_CONNECTED) {  // Wait for the connection to establish
+        delay(500);
+        Serial.println("Connecting to WiFi...");
+    }
+    Serial.println("Connected to WiFi");
+    Serial.print("IP Address: ");  // Print the IP address to the serial monitor
+    Serial.println(WiFi.localIP());
 
-// void checkSensors() {
-//   int lightLevel = analogRead(photoResistorPin);  // Read the light level
-//   //Serial.print("Light Level: ");
-//   //Serial.println(lightLevel);
-//   delay(500);
-//   if (lightSceneEnabled) {
-//     if (lightLevel < 1000) {
-//       activateServo();
-//     } else {
-//       deactivateServo();
-//     }
-//   }
-//   if (ledEnabled_photoresistor) {
-//     if (lightLevel > 1000) {
-//       digitalWrite(ledPin, HIGH);  // Turn on LED if light level is high
-//       Serial.println("LED On");
-//     } else {
-//       digitalWrite(ledPin, LOW);  // Turn off LED if light level is low
-//       Serial.println("LED Off");
-//     }
-//   }
-//   Serial.print(digitalRead(motionSensorPin));
-//   if (motionSensorEnabled && digitalRead(motionSensorPin) == HIGH) {  // Read the motion sensor
-//     Serial.println("Motion Detected");
-//     myServo.write(180);  // Simulate door opening
-//     delay(5000);
-//     myServo.write(0);
-//   }
+    firebase.setString("Device/MAC", WiFi.macAddress());
+    firebase.setString("Device/IP", WiFi.localIP().toString());
 
-//   if (ledEnabled_motion && digitalRead(motionSensorPin) == HIGH) {  // Read the motion sensor
-//     digitalWrite(ledPin, HIGH);                                     // Turn on LED if light level is high
-//     Serial.println("LED On");                                       // Simulate door opening
-//     delay(5000);
-//     digitalWrite(ledPin, LOW);  // Turn off LED if light level is low
-//     Serial.println("LED Off");
-//   }
-// }
+    server.begin();                    // Start the server
+    pinMode(photoResistorPin, INPUT);  // Set photoresistor pin as input
 
-// void activateServo() {
-//   Serial.println("Activating servo");
-//   myServo.write(180);  // Rotate to 180 degrees
-// }
+    // Initialize a NTPClient to get time
+    timeClient.begin();
+    timeClient.setTimeOffset(3600);
+}
 
-// void deactivateServo() {
-//   Serial.println("Deactivating servo");
-//   myServo.write(0);  // Rotate back to 0 degrees
-// }
+void loop() {
+    timeClient.update();
+    scene();  // Handle client connections and sensor checking
+}
+
+void scene() {
+
+    WiFiClient client = server.available();  // Listen for incoming clients
+    if (client) {
+        Serial.println("New Client Connected");
+
+        String currentLine = "";  // Make a String to hold incoming data from the client
+        while (client.connected()) {
+
+            if (client.available()) {
+                char c = client.read();  // Read a byte
+                Serial.write(c);         // Echo it back to the serial monitor
+                if (c == '\n') {         // If the byte is a newline character
+                    // Check the current line for a GET request
+                    if (currentLine.startsWith("GET /servo/photoresistor/on")) {
+                        lightSceneEnabled = true;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("Light scene enabled");
+                        client.println();
+                        Serial.println("Light scene enabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /servo/photoresistor/off")) {
+                        lightSceneEnabled = false;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("Light scene disabled");
+                        client.println();
+                        Serial.println("Light scene disabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /servo/motionSensor/on")) {
+                        motionSensorEnabled = true;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("Motion sensor enabled");
+                        client.println();
+                        Serial.println("Motion sensor enabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /servo/motionSensor/off")) {
+                        motionSensorEnabled = false;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("Motion sensor disabled");
+                        client.println();
+                        Serial.println("Motion sensor disabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /led/photoresistor/on")) {
+                        ledEnabled_photoresistor = true;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("LED control enabled");
+                        client.println();
+                        Serial.println("LED control enabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /led/photoresistor/off")) {
+                        ledEnabled_photoresistor = false;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("LED control photoresistor disabled");
+                        client.println();
+                        Serial.println("LED control photoresistor disabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /led/motionSensor/on")) {
+                        ledEnabled_motion = true;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("LED control motion enabled");
+                        client.println();
+                        Serial.println("LED control motion enabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /led/motionSensor/off")) {
+                        ledEnabled_motion = false;
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-type: text/plain");
+                        client.println();
+                        client.println("LED control motion disabled");
+                        client.println();
+                        Serial.println("LED control motion disabled");
+                        break;
+                    }
+                    currentLine = "";      // Clear the currentLine
+                } else if (c != '\r') {  // If the byte is not a carriage return character
+                    currentLine += c;      // Add it to the end of the currentLine
+                }
+            }
+        }
+        client.stop();  // Close the connection
+        Serial.println("Client Disconnected");
+    }
+
+    checkSensors();  // Function to check the sensors
+}
+
+
+int motionReadings[HISTORY_LENGTH] = { 0, 0, 0, 0, 0 };  // Initialize all readings to 0
+int readIndex = 0;                                       // Index for where to store the next reading
+
+void updateMotionHistory(int newReading) {
+    motionReadings[readIndex] = newReading;        // Update the current index with the new reading
+    readIndex = (readIndex + 1) % HISTORY_LENGTH;  // Move index forward and wrap around if necessary
+}
+
+bool checkMotionHistory() {
+    for (int i = 0; i < HISTORY_LENGTH; i++) {
+        if (motionReadings[i] != 0) {
+            return false;  // If any reading is not 0, return false
+        }
+    }
+    return true;  // All readings were 0
+}
+
+
+void checkSensors() {
+    digitalWrite(ledPin, LOW);
+    int lightLevel = analogRead(photoResistorPin);  // Read the light level
+
+    // Read motion sensor and update history
+    int currentMotion = digitalRead(motionSensorPin);
+
+    // Get current time
+    timeClient.update();
+    long currentTime = timeClient.getEpochTime();
+    String formattedTime = timeClient.getFormattedTime();
+    Serial.print(currentMotion);  // Output current motion reading
+
+    delay(500);
+    if (lightSceneEnabled) {
+        if (lightLevel < 1000) {
+            firebase.setInt("sensorData/photoResistor", motionSensorPin);
+            firebase.setString("sensorData/photoResistor/timestamp", formattedTime);
+            activateServo();
+        } else {
+            deactivateServo();
+        }
+    }
+    if (ledEnabled_photoresistor) {
+        if (lightLevel > 1000) {
+
+            digitalWrite(ledPin, HIGH);  // Turn on LED if light level is high
+            Serial.println("LED On");
+        } else {
+            firebase.setInt("sensorData/photoResistor", motionSensorPin);
+            firebase.setString("sensorData/photoResistor/timestamp", formattedTime);
+            digitalWrite(ledPin, LOW);  // Turn off LED if light level is low
+            Serial.println("LED Off");
+        }
+    }
+
+    // Check motion history BEFORE updating it to make sure the last 5 were zero and current is HIGH
+    bool previousHistoryClear = checkMotionHistory();  // Check if previous readings were all zero
+    updateMotionHistory(currentMotion);                // Then update motion history with current state
+
+    // Only trigger motion-related actions if current motion is detected AND the previous five were zero
+    if (motionSensorEnabled && currentMotion == HIGH && previousHistoryClear) {
+        Serial.println("Motion Detected");
+        myServo.write(0);  // Simulate door opening
+        firebase.setInt("sensorData/motionDetected", motionSensorPin);
+        firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
+        delay(3000);
+        myServo.write(90);  // Simulate door closing
+    }
+
+
+
+    if (ledEnabled_motion && currentMotion == HIGH && previousHistoryClear) {
+        digitalWrite(ledPin, HIGH);  // Turn on LED
+        Serial.println("LED On");
+        firebase.setInt("sensorData/motionDetected", motionSensorPin);
+        firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
+        delay(5000);
+        digitalWrite(ledPin, LOW);  // Turn off LED
+        Serial.println("LED Off");
+    }
+}
+void activateServo() {
+    Serial.println("Activating servo");
+    myServo.write(180);  // Rotate to 180 degrees
+}
+
+void deactivateServo() {
+    Serial.println("Deactivating servo");
+    myServo.write(0);  // Rotate back to 0 degrees
+}
