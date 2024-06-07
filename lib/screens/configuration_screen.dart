@@ -54,13 +54,6 @@ class ConfigurationScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 TestPanel(context: context),
-                const Center(
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: RealtimeDataWidget(path: "Device", visible: true),
-                  ),
-                ),
                 const Spacer(), // Pushes the following widgets to the bottom
                 Center(
                   child: SizedBox(
