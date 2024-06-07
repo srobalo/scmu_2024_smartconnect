@@ -43,20 +43,20 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   @override
   void initState() {
     super.initState();
-    _checkPermissionsAndScan();
+    //_checkPermissionsAndScan();
   }
 
   Future<void> _checkPermissionsAndScan() async {
     await WiFiScan.instance.canStartScan(askPermissions: true);
-    _startSearching();
+   // _startSearching();
   }
 
   @override
   void dispose() {
-    _searchTimer?.cancel(); // Cancel the search timer if it's running
+    //_searchTimer?.cancel(); // Cancel the search timer if it's running
     super.dispose();
   }
-
+/*
   void _startSearching() async {
     if (!mounted) return;
 
@@ -64,16 +64,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       _isSearching = true;
     });
 
-    // String? ipRange = await NetworkUtility.getLocalIpAddress();
-    //
-    // if (ipRange == null) {
-    //   if (!mounted) return;
-    //   NotificationToast.showToast(context, "Failed to retrieve local IP address.");
-    //   setState(() {
-    //     _isSearching = false;
-    //   });
-    //   return;
-    // }
 
     final success = await WiFiScan.instance.startScan();
 
@@ -102,52 +92,13 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         NotificationToast.showToast(context, "No SHASM's devices found.");
       }
     });
-  }
-
-  // for (int i = 1; i <= 5; i++) {
-
-  // // Simulate adding fake devices
-  //   _deviceList.add(DeviceInfo(
-  //     name: 'Fake Device $i',
-  //     ipAddress: '$ipRange.$i',
-  //   ));
-  // }
-
-  // Iterate through IP addresses in the range and check for devices
-  // for (int i = 1; i <= 255; i++) {
-  //   final String ipAddress = '$ipRange.$i';
-  //   final InternetAddress address = InternetAddress(ipAddress);
-  //   await Socket.connect(address, devicePort,
-  //           timeout: const Duration(milliseconds: 100))
-  //       .then((Socket socket) {
-  //     // Connection succeeded, device is found
-  //     print('Device found at IP: $ipAddress');
-  //     _deviceList.add(DeviceInfo(
-  //       name: 'Device ${_deviceList.length + 1}',
-  //       ipAddress: ipAddress,
-  //     ));
-  //     if (!mounted) return;
-  //     setState(() {});
-  //     socket.destroy();
-  //   }).catchError((dynamic e) {
-  //     // Connection failed, device is likely not available
-  //     return null; // Return null to indicate that the error is handled
-  //   });
-  //}
-
-  //   // Hide the loading indicator if devices are found before the timer completes
-  //   if (_deviceList.isNotEmpty) {
-  //     if (!mounted) return;
-  //     setState(() {
-  //       _isSearching = false;
-  //     });
-  //   }
+  }*/
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connect Device'),
+        title: const Text('Configure Device'),
       ),
       body: Center(
         child: Column(
@@ -159,14 +110,18 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
               color: Colors.blue, // Adjust the color of the icon as needed
             ),
             const Text(
-              'Find Devices to Connect To',
+              'Configure SHASM device',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            ElevatedButton(onPressed: () async {
+              await _requestBrowserTest();
+            }, child: const Text('Configure network'),),
+           const SizedBox(height: 20),
+           /* ElevatedButton(
               onPressed: _isSearching ? null : _startSearching,
               child: _isSearching
                   ? const SizedBox(
@@ -218,36 +173,36 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                   );
                 },
               ),
-            ),
+            ),*/
           ],
         ),
       ),
     );
   }
 
-  Future<void> sendCredentialsAndConnect(String ssid, String password) async {
-    // Print debug information
-    print('SSID: $ssid');
-    print('Password: $password');
-    bool success = await WiFiForIoTPlugin.connect(ssid,
-        password: password, joinOnce: true, security: NetworkSecurity.WPA, withInternet: false);
-    if (success) {
-      print('Conectado a $ssid');
-      sleep(20 as Duration);
-      // await connectToDeviceToWifi();
-      await _requestBrowserTest();
-    } else {
-      print('Falha ao conectar a $ssid');
-      NotificationToast.showToast(context, 'Failed to connect to $ssid');
-    }
-  }
+  // Future<void> sendCredentialsAndConnect(String ssid, String password) async {
+  //   // Print debug information
+  //   print('SSID: $ssid');
+  //   print('Password: $password');
+  //   // bool success = await WiFiForIoTPlugin.connect(ssid,
+  //   //     password: password, joinOnce: true, security: NetworkSecurity.WPA, withInternet: false);
+  //   // if (success) {
+  //   //   print('Conectado a $ssid');
+  //   //   sleep(20 as Duration);
+  //   //   // await connectToDeviceToWifi();
+  //   //   await _requestBrowserTest();
+  //   // } else {
+  //   //   print('Falha ao conectar a $ssid');
+  //   //   NotificationToast.showToast(context, 'Failed to connect to $ssid');
+  //   // }
+  // }
 
   Future<void> _requestBrowserTest() async {
     final Uri url = Uri.parse('http://$deviceGateway');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       NotificationToast.showToast(context,'Could not launch $url');
     }
-    final id = await MyPreferences.loadData<String>("USER_ID");
+    final user_id = await MyPreferences.loadData<String>("USER_ID");
     String ip = await RealtimeDataService(path: "Device/IP").getLatestData();
     String mac = await  RealtimeDataService(path: "Device/MAC").getLatestData();
     print('MAC ${mac}');
@@ -256,7 +211,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       setState(() async {
         Device device = Device(
             id: '',
-            ownerId: id ?? 'undefined',
+            ownerId: user_id ?? 'undefined',
             name: 'SHASM',
             domain: 'SHASM',
             mac: mac,
@@ -266,19 +221,19 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 
         Device? d = await FirestoreService().createDeviceIfNotExists(device);
         if( d != null) {
-          if (d.ownerId == id) {
+          if (d.ownerId == user_id) {
             final payload = {
               'owner': d.ownerId,
-              'id': id,
+              'id': user_id,
               'mac': mac
             };
             MyPreferences.saveData("capabilities", generateJwt(payload: payload));
           }
           else {
-            List<String>? p = d.capabilities[id];
+            List<String>? p = d.capabilities[user_id];
             final newPayload = {
               'owner': d.ownerId,
-              'id': id,
+              'id': user_id,
               'mac': mac,
               "cap": p
             };
@@ -286,7 +241,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           }
         }
       });
-      NotificationToast.showToast(context, 'MAC: $mac');
+      NotificationToast.showToast(context, 'Connected to MAC: $mac');
 
     } else {
       NotificationToast.showToast(context, 'Device Error: $ip $mac');
@@ -328,7 +283,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
             ElevatedButton(
               onPressed: () {
                 // Send SSID and password to the device and connect
-                sendCredentialsAndConnect(ssid, password);
+                // sendCredentialsAndConnect(ssid, password);
                 Navigator.of(context).pop(); // Close the dialog
               },
               child: const Text('Connect'),

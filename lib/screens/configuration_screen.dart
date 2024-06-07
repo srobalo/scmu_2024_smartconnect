@@ -154,9 +154,7 @@ class _TestPanelState extends State<TestPanel> {
         //ElevatedButton(onPressed: () async {await _requestNotificationTest();},child: const Text('Test Notification'),),
         //ElevatedButton(onPressed: () async {await _delayedNotification();},child: const Text('Test Delayed Notification'),),
         //ElevatedButton(onPressed: () async {await _requestDatabaseTest();},child: const Text('Test Notification Database'),),
-        ElevatedButton(onPressed: () async {
-          await _requestBrowserTest();
-        }, child: const Text('Connect ESP to Network'),),
+
       ],
     );
   }
