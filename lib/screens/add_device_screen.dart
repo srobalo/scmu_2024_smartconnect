@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../firebase/firestore_service.dart';
 import '../firebase/firebasedb.dart';
 import "../utils/network_utility.dart";
+import '../utils/realtime_data_service.dart';
 
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({Key? key}) : super(key: key);
@@ -229,15 +230,69 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     print('SSID: $ssid');
     print('Password: $password');
     bool success = await WiFiForIoTPlugin.connect(ssid,
-        password: password, joinOnce: true, security: NetworkSecurity.WPA);
+        password: password, joinOnce: true, security: NetworkSecurity.WPA, withInternet: false);
     if (success) {
       print('Conectado a $ssid');
-      await connectToDeviceToWifi();
+      sleep(20 as Duration);
+      // await connectToDeviceToWifi();
+      await _requestBrowserTest();
     } else {
       print('Falha ao conectar a $ssid');
       NotificationToast.showToast(context, 'Failed to connect to $ssid');
     }
   }
+
+  Future<void> _requestBrowserTest() async {
+    final Uri url = Uri.parse('http://$deviceGateway');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      NotificationToast.showToast(context,'Could not launch $url');
+    }
+    final id = await MyPreferences.loadData<String>("USER_ID");
+    String ip = await RealtimeDataService(path: "Device/IP").getLatestData();
+    String mac = await  RealtimeDataService(path: "Device/MAC").getLatestData();
+    print('MAC ${mac}');
+    NotificationToast.showToast(context, 'Negotiating with $ip}');
+    if (ip != "No Data" && mac != "No Data") {
+      setState(() async {
+        Device device = Device(
+            id: '',
+            ownerId: id ?? 'undefined',
+            name: 'SHASM',
+            domain: 'SHASM',
+            mac: mac,
+            ip: ip,
+            capabilities: {}
+        );
+
+        Device? d = await FirestoreService().createDeviceIfNotExists(device);
+        if( d != null) {
+          if (d.ownerId == id) {
+            final payload = {
+              'owner': d.ownerId,
+              'id': id,
+              'mac': mac
+            };
+            MyPreferences.saveData("capabilities", generateJwt(payload: payload));
+          }
+          else {
+            List<String>? p = d.capabilities[id];
+            final newPayload = {
+              'owner': d.ownerId,
+              'id': id,
+              'mac': mac,
+              "cap": p
+            };
+            MyPreferences.saveData("capabilities", generateJwt(payload: newPayload));
+          }
+        }
+      });
+      NotificationToast.showToast(context, 'MAC: $mac');
+
+    } else {
+      NotificationToast.showToast(context, 'Device Error: $ip $mac');
+    }
+  }
+
 
   void connectToDevice(WiFiAccessPoint wifi) {
     // Show a dialog to input SSID and password
