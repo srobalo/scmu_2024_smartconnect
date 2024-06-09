@@ -95,6 +95,7 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
         String id = token['id'];
         String mac = token['mac'];
         final scene = Scene(
+          id: '',
           name: sceneName,
           triggers: selectedTriggers,
           actions: selectedActions,
@@ -109,11 +110,10 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
         print("Saving scene: ${sceneData}");
 
         // Add the scene to the Firestore 'scenes' collection
-        FirebaseFirestore.instance.collection('scenes').add(sceneData).then((
-            result) {
+        FirebaseFirestore.instance.collection('scenes').add(sceneData).then((result) {
           print("Scene saved successfully!");
           NotificationToast.showToast(context, "Scene saved successfully!");
-          Navigator.pop(context); // Optionally navigate back
+          Navigator.pop(context);
         }).catchError((error) {
           print("Failed to save scene: $error");
           NotificationToast.showToast(context, "Failed to save scene: $error");
@@ -147,8 +147,11 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Delete Custom Notification'),
-            content: Text(
-                'Are you sure you want to delete "${selectedNotification!.title}"?'),
+            content: Text('Are you sure you want to delete "${selectedNotification!.title}"?',
+              style: TextStyle(
+                color: backgroundColorSecondary,
+              ),
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -201,7 +204,7 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Scene Name',
                     labelStyle: TextStyle(
-                      color: backgroundColorSecondary, // Set label text color to black
+                      color: backgroundColorSecondary,
                     ),
                   ),
                   initialValue: sceneName,
@@ -211,7 +214,7 @@ class _SceneConfigurationScreenState extends State<SceneConfigurationScreen> {
                     });
                   },
                   style: TextStyle(
-                    color: backgroundColor, // Set text color to black
+                    color: backgroundColor,
                   ),
                 ),
                 const SizedBox(height: 16.0),

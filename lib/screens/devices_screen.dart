@@ -15,13 +15,13 @@ import '../widgets/createUser_widget.dart';
 import 'add_device_screen.dart';
 
 class DevicesScreen extends StatefulWidget {
-  const DevicesScreen({Key? key}) : super(key: key);
+  const DevicesScreen({super.key});
 
   @override
-  _DevicesScreenState createState() => _DevicesScreenState();
+  DevicesScreenState createState() => DevicesScreenState();
 }
 
-class _DevicesScreenState extends State<DevicesScreen>
+class DevicesScreenState extends State<DevicesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<Actuator> devices = [];
@@ -52,7 +52,7 @@ class _DevicesScreenState extends State<DevicesScreen>
         var data = doc.data() as Map<String, dynamic>;
         Actuator device = Actuator(
           command: data['command'] ?? '',
-          id_action: data['id_action'] ?? 0,
+          id_action: data['id_action'] ?? -1,
           counter: data['counter'] ?? '',
           name: data['name'] ?? '',
           state: data['state'] ?? false,
@@ -67,10 +67,10 @@ class _DevicesScreenState extends State<DevicesScreen>
     }
   }
 
-  void  sendCommand(
+  void sendCommand(
       String actuatorId, String commandAction, String deviceIp) async {
     try {
-      final deviceIp = await RealtimeDataService(path: "Device/IP").getLatestData();
+      String? deviceIp = await RealtimeDataService(path: "Device/IP").getFetchData();
       final url = Uri.parse('http://${deviceIp}/${actuatorId}/${commandAction}');
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -156,7 +156,7 @@ class _DevicesScreenState extends State<DevicesScreen>
               itemBuilder: (context, index) {
                 return ListTile(
                   leading: CircleAvatar(
-                   // backgroundImage: AssetImage(devices[index].name),
+                    backgroundImage: AssetImage(getAssetPath(devices[index].id_action)),
                     backgroundColor: backgroundColorTertiary,
                   ),
                   title: Text(
@@ -228,5 +228,20 @@ class _DevicesScreenState extends State<DevicesScreen>
             ]),
           )),
     ]);
+  }
+}
+
+String getAssetPath(int id) {
+  switch (id) {
+    case 12:
+      return 'assets/motion_sensor.png';
+    case 13:
+      return 'assets/smart_lock.png';
+    case 32:
+      return 'assets/smart_bulb.png';
+    case 34:
+      return 'assets/light_sensor.png';
+    default:
+      return 'assets/empty.png';
   }
 }

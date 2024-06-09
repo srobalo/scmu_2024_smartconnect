@@ -14,13 +14,13 @@ import '../utils/my_preferences.dart';
 class ScenesScreen extends StatefulWidget {
   //final List<Device> devices;
 
-  const ScenesScreen({Key? key}) : super(key: key);
+  const ScenesScreen({super.key});
 
   @override
-  _ScenesScreenState createState() => _ScenesScreenState();
+  ScenesScreenState createState() => ScenesScreenState();
 }
 
-class _ScenesScreenState extends State<ScenesScreen> {
+class ScenesScreenState extends State<ScenesScreen> {
   Map<String, bool> sceneActive = {};
   List<Scene> scenes = [];
   final FirestoreService _firestoreService = FirestoreService();
@@ -34,18 +34,20 @@ class _ScenesScreenState extends State<ScenesScreen> {
   Future<void> sendCommandToESP(String triggerCommand, String actionCommand,
       String name, String command) async {
     try {
-      final url = Uri.parse(
-          'http://192.168.1.204/${actionCommand}/${triggerCommand}/$command');
+      String? ip = await MyPreferences.loadData<String>("DEVICE_IP");
+      if(ip == null || ip == "No Data" || ip == ""){
+        NotificationToast.showToast(context, "Device IP is unknown");
+        return;
+      }
+      final url = Uri.parse('http://$ip/$actionCommand/$triggerCommand/$command');
       print(url);
       final response = await http.get(url);
       if (response.statusCode == 200) {
         print('Command sent successfully: $command');
         NotificationToast.showToast(context, 'Scene "$name" updated: $command');
       } else {
-        print(
-            'Failed to send command: $command, Status code: ${response.statusCode}');
-        NotificationToast.showToast(
-            context, 'Failed to send command: $command');
+        print('Failed to send command: $command, Status code: ${response.statusCode}');
+        NotificationToast.showToast(context, 'Failed to send command: $command');
       }
     } catch (e) {
       print('Error sending command: $e');
@@ -75,8 +77,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
       } else {
         String id = token['owner'];
         String mac = token['mac'];
-        final docs =
-            await _firestoreService.getAllScenesFromUserAndDevice(id,mac);
+        final docs = await _firestoreService.getAllScenesFromUserAndDevice(id,mac);
         scenes = docs.map((doc) => Scene.fromFirestore(doc)).toList();
 
         // Initialize activation state for each scene
@@ -91,15 +92,40 @@ class _ScenesScreenState extends State<ScenesScreen> {
   }
 
   Future<void> _deleteSceneFromFirebase(Scene scene) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('scenes')
-          .doc(scene.name)
-          .delete();
-      NotificationToast.showToast(context, "Scene deleted successfully.");
-    } catch (e) {
-      NotificationToast.showToast(context, "Failed to delete scene: $e");
-    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Scene'),
+          content: Text('Are you sure you want to delete the scene "${scene.name}"?',
+            style: TextStyle(
+              color: backgroundColorSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                try {
+                  await FirebaseFirestore.instance.collection('scenes').doc(scene.id).delete()
+                      .then((value) => NotificationToast.showToast(context, "Scene deleted successfully."));
+                  setState(() {});
+                } catch (e) {
+                  NotificationToast.showToast(context, "Failed to delete scene: $e");
+                }
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -109,7 +135,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
         future: _fetchScenesFromFirebase(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Container();
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -118,12 +144,10 @@ class _ScenesScreenState extends State<ScenesScreen> {
             final scenes = snapshot.data!;
             return ListView.builder(
               itemCount: scenes.length + 1,
-              // Add one to the item count for the transparent padding
               itemBuilder: (context, index) {
                 if (index == scenes.length) {
-                  // This is the transparent padding element
                   return Container(
-                    height: 80.0, // Adjust height as needed
+                    height: 80.0,
                     color: Colors.transparent,
                   );
                 } else {
@@ -136,7 +160,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
                       color: backgroundColorTertiary,
                     ),
                     child: ListTile(
-                      leading: Icon(Icons.lightbulb_outline,
+                      leading: Icon(Icons.smart_toy_outlined,
                           color: backgroundColorSecondary),
                       title: Text(scene.name),
                       subtitle: Text(
@@ -156,8 +180,7 @@ class _ScenesScreenState extends State<ScenesScreen> {
                                 setState(() {
                                   sceneActive[scene.name] = value;
                                 });
-                                print(
-                                    'Scene ${scene.actions[0].command} is now ${value ? 'active' : 'inactive'}');
+                                print('Scene ${scene.actions[0].command} is now ${value ? 'active' : 'inactive'}');
                                 sendCommandToESP(
                                     scene.triggers[0].command,
                                     scene.actions[0].command,
@@ -176,7 +199,6 @@ class _ScenesScreenState extends State<ScenesScreen> {
                         ],
                       ),
                       onTap: () {
-                        // Optionally, navigate to a detailed view of the scene
                       },
                     ),
                   );

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 //
-const String buildDateString = '07-06-2024';
+const String buildDateString = '10-06-2024';
 //
 const int devicePort = 80;
 const String deviceGateway = "192.168.4.1";
-const String staticDeviceIPTest = "192.168.43.166";
 const int deviceSearchTimerSeconds = 7;
 //
 const String firebaseRealtimeDBUrl = 'https://scmu-2024-smartconnect-default-rtdb.europe-west1.firebasedatabase.app/';

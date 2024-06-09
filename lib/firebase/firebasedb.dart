@@ -128,4 +128,12 @@ class FirebaseDB {
   Future<DocumentSnapshot?> getUserByUsername(String emailOrUsername) async {
     return await _firestoreService.getUserByUsername(emailOrUsername);
   }
+
+  Future<void> incrementActuatorCounter(String actuatorId) async {
+    return await _firestoreService.incrementActuatorCounter(actuatorId);
+  }
+
+  Future<void> incrementTriggerCounter(String triggerId) async {
+    return await _firestoreService.incrementTriggerCounter(triggerId);
+  }
 }

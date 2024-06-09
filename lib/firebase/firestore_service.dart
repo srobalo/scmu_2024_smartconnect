@@ -280,8 +280,10 @@ class FirestoreService {
   Future<List<QueryDocumentSnapshot>> getAllScenesFromUserAndDevice(
       String userid,String mac) async {
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection("scenes").where(
-          "user", isEqualTo: userid).where("mac",isEqualTo: mac).get();
+      QuerySnapshot querySnapshot = await _firestore.collection("scenes")
+          .where("user", isEqualTo: userid)
+          .where("mac",isEqualTo: mac)
+          .get();
       return querySnapshot.docs;
     } catch (e) {
       print("Error retrieving documents: $e");
@@ -478,6 +480,40 @@ class FirestoreService {
     } catch (e) {
       print("Error retrieving user document by username: $e");
       return null;
+    }
+  }
+
+  Future<void> incrementActuatorCounter(String actuatorId) async {
+    try {
+      DocumentReference docRef = _firestore.collection('actuators').doc(actuatorId);
+      await _firestore.runTransaction((transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) {
+          throw Exception("Actuator with ID $actuatorId does not exist!");
+        }
+        int newCounter = (snapshot['counter'] ?? 0) + 1;
+        transaction.update(docRef, {'counter': newCounter});
+      });
+      print("Actuator counter incremented successfully.");
+    } catch (e) {
+      print("Error incrementing actuator counter: $e");
+    }
+  }
+
+  Future<void> incrementTriggerCounter(String triggerId) async {
+    try {
+      DocumentReference docRef = _firestore.collection('triggers').doc(triggerId);
+      await _firestore.runTransaction((transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) {
+          throw Exception("Trigger with ID $triggerId does not exist!");
+        }
+        int newCounter = (snapshot['counter'] ?? 0) + 1;
+        transaction.update(docRef, {'counter': newCounter});
+      });
+      print("Trigger counter incremented successfully.");
+    } catch (e) {
+      print("Error incrementing trigger counter: $e");
     }
   }
 }

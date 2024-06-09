@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import '../defaults/default_values.dart';
 import '../firebase/firestore_service.dart';
 import '../objects/scene_actuator.dart';
@@ -14,7 +15,6 @@ class MetricScreen extends StatefulWidget {
 }
 
 class _MetricScreenState extends State<MetricScreen> {
-  final String to_Grap_And_Replace_DeviceId = "theid";
   final FirestoreService _firestoreService = FirestoreService();
 
   //
@@ -28,12 +28,13 @@ class _MetricScreenState extends State<MetricScreen> {
   @override
   void initState() {
     super.initState();
-    _actuatorsStream = _getActuatorStream(to_Grap_And_Replace_DeviceId);
-    _triggersStream = _getTriggerStream(to_Grap_And_Replace_DeviceId);
+    _actuatorsStream = _getActuatorStream();
+    _triggersStream = _getTriggerStream();
   }
 
-  Stream<List<Actuator>> _getActuatorStream(String deviceId) async* {
-    yield* _firestoreService.getActuatorsStream(deviceId).map(
+  Stream<List<Actuator>> _getActuatorStream() async* {
+    String? deviceId = await MyPreferences.loadData<String>("DEVICE_MAC");
+    yield* _firestoreService.getActuatorsStream(deviceId!).map(
           (documents) {
         List<Actuator> actuators = documents.map((doc) =>
             Actuator.fromFirestore(doc)).toList();
@@ -44,8 +45,9 @@ class _MetricScreenState extends State<MetricScreen> {
   }
 
 
-  Stream<List<Trigger>> _getTriggerStream(String deviceId) async* {
-    yield* _firestoreService.getTriggersStream(deviceId).map(
+  Stream<List<Trigger>> _getTriggerStream() async* {
+    String? deviceId = await MyPreferences.loadData<String>("DEVICE_MAC");
+    yield* _firestoreService.getTriggersStream(deviceId!).map(
           (documents) {
         List<Trigger> triggers = documents.map((doc) =>
             Trigger.fromFirestore(doc)).toList();

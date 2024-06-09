@@ -234,8 +234,8 @@ class _TestPanelState extends State<TestPanel> {
       NotificationToast.showToast(context,'Could not launch $url');
     }
     final id = await MyPreferences.loadData<String>("USER_ID");
-    String ip = await RealtimeDataService(path: "Device/IP").getLatestData();
-    String mac = await  RealtimeDataService(path: "Device/MAC").getLatestData();
+    String ip = await RealtimeDataService(path: "Device/IP").getFetchData();
+    String mac = await  RealtimeDataService(path: "Device/MAC").getFetchData();
     print('MAC ${mac}');
     NotificationToast.showToast(context, 'Negotiating with $ip}');
     if (ip != "No Data" && mac != "No Data") {

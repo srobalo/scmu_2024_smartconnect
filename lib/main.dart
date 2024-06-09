@@ -7,13 +7,14 @@ import 'package:scmu_2024_smartconnect/screens/login_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/metric_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/registration_screen.dart';
 import 'package:scmu_2024_smartconnect/screens/user_profile_screen.dart';
+import 'package:scmu_2024_smartconnect/utils/firebase_stream_provider.dart';
 import 'package:scmu_2024_smartconnect/utils/my_preferences.dart';
 import 'package:scmu_2024_smartconnect/widgets/notification_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/permission_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/sun_and_moon.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_welcome_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_widget.dart';
-import 'package:scmu_2024_smartconnect/notification_manager.dart';
+import 'package:provider/provider.dart';
 //
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -26,12 +27,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({Key? key});
-  final NotificationManager _notificationManager = NotificationManager();
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -90,11 +90,11 @@ class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   @override
-  _MainPageState createState() => _MainPageState();
+  MainPageState createState() => MainPageState();
 }
 
 
-class _MainPageState extends State<MainPage> {
+class MainPageState extends State<MainPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   int _selectedIndex = 0;
 
@@ -183,6 +183,7 @@ class _MainPageState extends State<MainPage> {
       body: _selectedIndex == 0 || _selectedIndex == 1
           ? Column(
         children: [
+          const FirebaseStreamProvider(),
           Stack(
             children: [
               SizedBox(

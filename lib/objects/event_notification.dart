@@ -45,4 +45,17 @@ class EventNotification {
       shown: shown,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userid': userid,
+      'title': title,
+      'domain': domain,
+      'description': description,
+      'observation': observation,
+      'timestamp': timestamp.toIso8601String(),
+      'shown': shown,
+    };
+  }
 }

@@ -16,10 +16,10 @@ class RealtimeDataWidget extends StatefulWidget {
   });
 
   @override
-  _RealtimeDataWidgetState createState() => _RealtimeDataWidgetState();
+  RealtimeDataWidgetState createState() => RealtimeDataWidgetState();
 }
 
-class _RealtimeDataWidgetState extends State<RealtimeDataWidget> {
+class RealtimeDataWidgetState extends State<RealtimeDataWidget> {
   late DatabaseReference databaseReference;
   String data = "No Data";
   StreamSubscription<DatabaseEvent>? _dataSubscription;

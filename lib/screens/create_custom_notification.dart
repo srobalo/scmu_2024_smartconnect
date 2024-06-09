@@ -11,10 +11,10 @@ class CreateNotificationForm extends StatefulWidget {
   const CreateNotificationForm({super.key});
 
   @override
-  _CreateNotificationFormState createState() => _CreateNotificationFormState();
+  CreateNotificationFormState createState() => CreateNotificationFormState();
 }
 
-class _CreateNotificationFormState extends State<CreateNotificationForm> {
+class CreateNotificationFormState extends State<CreateNotificationForm> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _observationController = TextEditingController();
@@ -54,26 +54,23 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
           'timestamp': notification.timestamp.toIso8601String(),
         });
 
-        // Get the assigned id
         String documentId = docRef.id;
-
-        // Update the document with the assigned id
         await docRef.update({'id': documentId});
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Notification created')),
         );
 
-        return true; // Return true to indicate success
+        return true;
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to create notification: $error')),
         );
-        return false; // Return false to indicate failure
+        return false;
       }
     }
 
-    return false; // Return false if form validation fails
+    return false;
   }
 
   void _cancel() {
@@ -140,11 +137,11 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
@@ -168,11 +165,11 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
@@ -196,11 +193,11 @@ class _CreateNotificationFormState extends State<CreateNotificationForm> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: backgroundColorSecondary), // Change border color here
+                        borderSide: BorderSide(color: backgroundColorSecondary),
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
