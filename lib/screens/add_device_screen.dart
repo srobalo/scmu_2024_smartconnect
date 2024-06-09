@@ -102,7 +102,7 @@ class AddDeviceScreenState extends State<AddDeviceScreen> {
             ),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Visibility(
-                  visible: _network!.contains("SHASM"),
+                  visible: _network?.contains("SHASM") ?? false,
                   child: ElevatedButton(
                     onPressed: () async {
                       await _requestBrowserTest();

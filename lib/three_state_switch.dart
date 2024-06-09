@@ -72,8 +72,8 @@ class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
     );
   }
   void fetchCap(String command) async {
-    var cap =  await MyPreferences.loadData<String>("capabilities");
-    if(cap != null) isVisible = hasPermission(cap, command);
+    var capabilities =  await MyPreferences.loadData<String>("capabilities");
+    if(capabilities != null)  isVisible = hasPermission(capabilities, command);
   }
   void _updateValue(bool newValue) {
     setState(() {

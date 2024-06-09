@@ -41,7 +41,13 @@ bool hasPermission(String token,String command) {
   Map<String, dynamic>? map = parseJwt(token);
   if (map != null) {
     List<String> commands = map['cap'];
-    return map['owner'] == map['id'] || commands.contains(command);
+    if (map['owner'] == map['id'] ) {
+      return true;
+    } else if(commands.contains(command)) {
+      return true;
+    } else {
+      return false;
+    }
 
   }
   return false;
