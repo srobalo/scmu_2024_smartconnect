@@ -483,26 +483,43 @@ class FirestoreService {
     }
   }
 
-  Future<void> incrementActuatorCounter(String actuatorId) async {
+  Future<void> incrementActuatorCounter(int actuatorId) async {
     try {
-      DocumentReference docRef = _firestore.collection('actuators').doc(actuatorId);
+      CollectionReference actuatorsCollection = _firestore.collection('actions');
+      QuerySnapshot querySnapshot = await actuatorsCollection.where('id_action', isEqualTo: actuatorId).get();
+
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception("No actuator found with id_actuator $actuatorId");
+      }
+
+      DocumentReference docRef = querySnapshot.docs.first.reference;
+
       await _firestore.runTransaction((transaction) async {
         DocumentSnapshot snapshot = await transaction.get(docRef);
         if (!snapshot.exists) {
-          throw Exception("Actuator with ID $actuatorId does not exist!");
+          throw Exception("Actuator with id_actuator $actuatorId does not exist!");
         }
         int newCounter = (snapshot['counter'] ?? 0) + 1;
         transaction.update(docRef, {'counter': newCounter});
       });
+
       print("Actuator counter incremented successfully.");
     } catch (e) {
       print("Error incrementing actuator counter: $e");
     }
   }
 
-  Future<void> incrementTriggerCounter(String triggerId) async {
+
+  Future<void> incrementTriggerCounter(int triggerId) async {
     try {
-      DocumentReference docRef = _firestore.collection('triggers').doc(triggerId);
+      CollectionReference triggersCollection = _firestore.collection('triggers');
+      QuerySnapshot querySnapshot = await triggersCollection.where('id_trigger', isEqualTo: triggerId).get();
+
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception("No trigger found with id_trigger $triggerId");
+      }
+
+      DocumentReference docRef = querySnapshot.docs.first.reference;
       await _firestore.runTransaction((transaction) async {
         DocumentSnapshot snapshot = await transaction.get(docRef);
         if (!snapshot.exists) {
@@ -511,6 +528,7 @@ class FirestoreService {
         int newCounter = (snapshot['counter'] ?? 0) + 1;
         transaction.update(docRef, {'counter': newCounter});
       });
+
       print("Trigger counter incremented successfully.");
     } catch (e) {
       print("Error incrementing trigger counter: $e");

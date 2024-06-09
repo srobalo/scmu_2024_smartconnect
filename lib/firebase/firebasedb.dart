@@ -129,11 +129,11 @@ class FirebaseDB {
     return await _firestoreService.getUserByUsername(emailOrUsername);
   }
 
-  Future<void> incrementActuatorCounter(String actuatorId) async {
+  Future<void> incrementActuatorCounter(int actuatorId) async {
     return await _firestoreService.incrementActuatorCounter(actuatorId);
   }
 
-  Future<void> incrementTriggerCounter(String triggerId) async {
+  Future<void> incrementTriggerCounter(int triggerId) async {
     return await _firestoreService.incrementTriggerCounter(triggerId);
   }
 }

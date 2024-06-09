@@ -47,6 +47,7 @@ class FirebaseStreamProviderState extends State<FirebaseStreamProvider> {
 
     bool? listenersMounted = await MyPreferences.loadData<bool>("LISTEN_RTDB");
     if(listenersMounted == null || !listenersMounted) {
+      await MyPreferences.saveData<String>("RTDB_MOUNT_TIME", DateTime.now().toIso8601String());
       await FirebaseService.handleMultiplePaths(_databaseReference, _notificationManager, paths, _activeListeners);
     }
   }
@@ -76,11 +77,11 @@ class FirebaseService {
         ref.child(path).onValue.listen((event) async {
           if (event.snapshot.exists) {
             print("[Sensoring] Detected change at $path");
-            String? id;
+            int id;
             String? timestampString;
 
             if (event.snapshot.child('id').exists) {
-              id = event.snapshot.child('id').value.toString();
+              id = event.snapshot.child('id').value as int;
             } else {
               print("Error: 'id' field is missing in the snapshot");
               return;
@@ -96,11 +97,14 @@ class FirebaseService {
             DateTime theTimestamp;
             try {
               theTimestamp = DateTime.parse(buildDateTimeString(timestampString));
-              print("Converting Time: ${theTimestamp.toIso8601String()}");
+              await updateCounters(path, id, theTimestamp);
+              print("Time: ${theTimestamp.toIso8601String()}");
             } catch (e) {
               print("Error parsing timestamp: $e");
               return;
             }
+
+            //get all the scenes that notifies == true, check those
 
             //foreach scene in scenes check triggers that match the id if notifies get customNotificationId
             //and do notification process, increment counters by action or trigger id
@@ -145,6 +149,21 @@ class FirebaseService {
           }
         });
       }
+    }
+  }
+}
+
+Future<void> updateCounters(String path, int id, DateTime received) async {
+  String? mount_time = await MyPreferences.loadData<String>("RTDB_MOUNT_TIME");
+  print('Mount Time:$mount_time Time received:${received.toIso8601String()}');
+  DateTime mount = DateTime.parse(mount_time!);
+  final difference = received.difference(mount);
+
+  if(difference.inSeconds > 5) {
+    if (path == "sensorData/motionDetected" || path == "sensorData/photoResistor") {
+      FirebaseDB().incrementTriggerCounter(id);
+    } else if (path == "sensorData/servoAction" || path == "sensorData/ledAction") {
+      FirebaseDB().incrementActuatorCounter(id);
     }
   }
 }
