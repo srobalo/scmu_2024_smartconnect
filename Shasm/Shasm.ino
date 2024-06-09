@@ -211,7 +211,8 @@ void checkSensors() {
     delay(500);
     if (lightSceneEnabled) {
         if (lightLevel < 1000) {
-            firebase.setInt("sensorData/photoResistor", motionSensorPin);
+            firebase.setInt("sensorData/photoResistor", ledPin);
+            //firebase.setInt("sensorData/photoResistor/value", lightLevel);
             firebase.setString("sensorData/photoResistor/timestamp", formattedTime);
             activateServo();
         } else {
@@ -224,7 +225,8 @@ void checkSensors() {
             digitalWrite(ledPin, HIGH);  // Turn on LED if light level is high
             Serial.println("LED On");
         } else {
-            firebase.setInt("sensorData/photoResistor", motionSensorPin);
+            firebase.setInt("sensorData/photoResistor", ledPin);
+            //firebase.setInt("sensorData/photoResistor/value", lightLevel);
             firebase.setString("sensorData/photoResistor/timestamp", formattedTime);
             digitalWrite(ledPin, LOW);  // Turn off LED if light level is low
             Serial.println("LED Off");
@@ -240,29 +242,43 @@ void checkSensors() {
         Serial.println("Motion Detected");
         myServo.write(0);  // Simulate door opening
         firebase.setInt("sensorData/motionDetected", motionSensorPin);
+        //firebase.setInt("sensorData/motionDetected/value", 0);
         firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
         delay(3000);
         myServo.write(90);  // Simulate door closing
+        firebase.setInt("sensorData/motionDetected", motionSensorPin);
+        //firebase.setInt("sensorData/motionDetected/value", 90);
+        firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
     }
-
-
 
     if (ledEnabled_motion && currentMotion == HIGH && previousHistoryClear) {
         digitalWrite(ledPin, HIGH);  // Turn on LED
+        //firebase.setInt("sensorData/ledAction", ledPin);
+        //firebase.setInt("sensorData/ledAction/value", 1);
+        //firebase.setString("sensorData/ledAction/timestamp", formattedTime);
         Serial.println("LED On");
         firebase.setInt("sensorData/motionDetected", motionSensorPin);
         firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
         delay(5000);
         digitalWrite(ledPin, LOW);  // Turn off LED
+        //firebase.setInt("sensorData/ledAction", ledPin);
+        //firebase.setInt("sensorData/ledAction/value", 0);
+        //firebase.setString("sensorData/ledAction/timestamp", formattedTime);
         Serial.println("LED Off");
     }
 }
 void activateServo() {
     Serial.println("Activating servo");
+    //firebase.setInt("sensorData/servoAction", servoPin);
+    //firebase.setInt("sensorData/servoAction/value", 180);
+    //firebase.setString("sensorData/servoAction/timestamp", formattedTime);
     myServo.write(180);  // Rotate to 180 degrees
 }
 
 void deactivateServo() {
     Serial.println("Deactivating servo");
+    //firebase.setInt("sensorData/servoAction", servoPin);
+    //firebase.setInt("sensorData/servoAction/value", 0);
+    //firebase.setString("sensorData/servoAction/timestamp", formattedTime);
     myServo.write(0);  // Rotate back to 0 degrees
 }
