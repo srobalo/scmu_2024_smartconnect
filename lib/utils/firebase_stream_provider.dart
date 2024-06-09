@@ -80,15 +80,24 @@ class FirebaseService {
             int id;
             String? timestampString;
 
-            if (event.snapshot.child('id').exists) {
-              id = event.snapshot.child('id').value as int;
+            if (event.snapshot
+                .child('id')
+                .exists) {
+              id = event.snapshot
+                  .child('id')
+                  .value as int;
             } else {
               print("Error: 'id' field is missing in the snapshot");
               return;
             }
 
-            if (event.snapshot.child('timestamp').exists) {
-              timestampString = event.snapshot.child('timestamp').value.toString();
+            if (event.snapshot
+                .child('timestamp')
+                .exists) {
+              timestampString = event.snapshot
+                  .child('timestamp')
+                  .value
+                  .toString();
             } else {
               print("Error: 'timestamp' field is missing in the snapshot");
               return;
@@ -104,48 +113,7 @@ class FirebaseService {
               return;
             }
 
-            //get all the scenes that notifies == true, check those
-
-            //foreach scene in scenes check triggers that match the id if notifies get customNotificationId
-            //and do notification process, increment counters by action or trigger id
-
-            //FirebaseDB().incrementActuatorCounter("1111"); //actuatorId
-            //FirebaseDB().incrementTriggerCounter("2222"); //triggerId
-
-            final QuerySnapshot scenesSnapshot = await FirebaseFirestore.instance
-                .collection('scenes').where('customNotificationId', isEqualTo: id).get();
-
-            if (scenesSnapshot.docs.isNotEmpty) {
-              final DocumentSnapshot sceneDoc = scenesSnapshot.docs.first;
-              final Scene scene = Scene.fromFirestore(sceneDoc);
-
-              if (scene.notifies) {
-                final DocumentSnapshot customNotificationDoc = await FirebaseFirestore
-                    .instance.collection('customnotifications').doc(scene.customNotificationId).get();
-
-                if (customNotificationDoc.exists) {
-                  final CustomNotification notification = CustomNotification
-                      .fromFirestoreDoc(customNotificationDoc);
-
-                  notifyManager.showNotification(
-                      title: notification.title, body: notification.description
-                  );
-
-                  final EventNotification eventNotification = EventNotification(
-                    id: notification.id,
-                    userid: notification.userid,
-                    title: notification.title,
-                    domain: notification.domain,
-                    description: notification.description,
-                    observation: notification.observation,
-                    timestamp: theTimestamp,
-                    shown: true,
-                  );
-
-                  await FirebaseDB().sendNotification(eventNotification.toMap());
-                }
-              }
-            }
+            await sendNotifications(notifyManager, path, id, theTimestamp);
           }
         });
       }
@@ -154,9 +122,9 @@ class FirebaseService {
 }
 
 Future<void> updateCounters(String path, int id, DateTime received) async {
-  String? mount_time = await MyPreferences.loadData<String>("RTDB_MOUNT_TIME");
-  print('Mount Time:$mount_time Time received:${received.toIso8601String()}');
-  DateTime mount = DateTime.parse(mount_time!);
+  String? mountTime = await MyPreferences.loadData<String>("RTDB_MOUNT_TIME");
+  print('Mount Time:$mountTime Time received:${received.toIso8601String()}');
+  DateTime mount = DateTime.parse(mountTime!);
   final difference = received.difference(mount);
 
   if(difference.inSeconds > 5) {
@@ -164,6 +132,59 @@ Future<void> updateCounters(String path, int id, DateTime received) async {
       FirebaseDB().incrementTriggerCounter(id);
     } else if (path == "sensorData/servoAction" || path == "sensorData/ledAction") {
       FirebaseDB().incrementActuatorCounter(id);
+    }
+  }
+}
+
+Future<void> sendNotifications(
+    NotificationManager notifyManager,
+    String path, int id, DateTime received) async {
+
+  String? mountTime = await MyPreferences.loadData<String>("RTDB_MOUNT_TIME");
+  DateTime mount = DateTime.parse(mountTime!);
+  final difference = received.difference(mount);
+
+  if(difference.inSeconds > 5) {
+
+    //get all the scenes that notifies == true
+
+    //foreach scene in scenes check triggers that match the id if notifies get customNotificationId
+    //and do notification process, increment counters by action or trigger id
+
+
+    final QuerySnapshot scenesSnapshot = await FirebaseFirestore.instance
+        .collection('scenes').where('customNotificationId', isEqualTo: id).get();
+
+    if (scenesSnapshot.docs.isNotEmpty) {
+      final DocumentSnapshot sceneDoc = scenesSnapshot.docs.first;
+      final Scene scene = Scene.fromFirestore(sceneDoc);
+
+      if (scene.notifies) {
+        final DocumentSnapshot customNotificationDoc = await FirebaseFirestore
+            .instance.collection('customnotifications').doc(scene.customNotificationId).get();
+
+        if (customNotificationDoc.exists) {
+          final CustomNotification notification = CustomNotification
+              .fromFirestoreDoc(customNotificationDoc);
+
+          notifyManager.showNotification(
+              title: notification.title, body: notification.description
+          );
+
+          final EventNotification eventNotification = EventNotification(
+            id: notification.id,
+            userid: notification.userid,
+            title: notification.title,
+            domain: notification.domain,
+            description: notification.description,
+            observation: notification.observation,
+            timestamp: received,
+            shown: true,
+          );
+
+          await FirebaseDB().sendNotification(eventNotification.toMap());
+        }
+      }
     }
   }
 }
