@@ -126,8 +126,7 @@ class FirebaseService {
                   shown: true,
                 );
 
-                await FirebaseFirestore.instance.collection('notifications')
-                    .add(eventNotification.toMap());
+                await FirebaseDB().sendNotification(eventNotification.toMap());
               }
             }
           }
