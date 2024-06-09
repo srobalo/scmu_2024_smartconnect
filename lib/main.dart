@@ -14,7 +14,6 @@ import 'package:scmu_2024_smartconnect/widgets/permission_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/sun_and_moon.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_welcome_widget.dart';
 import 'package:scmu_2024_smartconnect/widgets/user_widget.dart';
-import 'package:provider/provider.dart';
 //
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,6 +26,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  await MyPreferences.saveData<bool>("LISTEN_RTDB",false);
   runApp(const MyApp());
 }
 
@@ -132,9 +132,9 @@ class MainPageState extends State<MainPage> {
     ] : <Widget>[
       const UserWelcomeWidget(),
       const ConfigurationScreen(),
-    ] ;
+    ];
 
-    const loggedIn  = <BottomNavigationBarItem> [
+    const loggedIn = <BottomNavigationBarItem>[
       BottomNavigationBarItem(
         icon: Icon(Icons.home),
         label: 'Home',
@@ -153,7 +153,7 @@ class MainPageState extends State<MainPage> {
       ),
     ];
 
-    const loggedOut = <BottomNavigationBarItem> [
+    const loggedOut = <BottomNavigationBarItem>[
       BottomNavigationBarItem(
         icon: Icon(Icons.home),
         label: 'Home',
@@ -171,7 +171,8 @@ class MainPageState extends State<MainPage> {
             ? [
           IconButton(
             onPressed: () async {
-              await _auth.signOut().then((value) => {
+              await _auth.signOut().then((value) =>
+              {
                 MyPreferences.clearData("USER_ID"),
               });
             },
@@ -183,7 +184,6 @@ class MainPageState extends State<MainPage> {
       body: _selectedIndex == 0 || _selectedIndex == 1
           ? Column(
         children: [
-          const FirebaseStreamProvider(),
           Stack(
             children: [
               SizedBox(
@@ -207,11 +207,16 @@ class MainPageState extends State<MainPage> {
           ),
           const PermissionStatusWidget(visible: false),
           Expanded(
-            child: widgetOptions.elementAt(_selectedIndex),
+            child: Stack(
+              children: [
+                const FirebaseStreamProvider(),
+                widgetOptions.elementAt(_selectedIndex),
+              ],
+            ),
           ),
         ],
-      )
-          : widgetOptions.elementAt(_selectedIndex),
+      ) :
+      widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: _auth.currentUser != null ?
         loggedIn : loggedOut,
@@ -224,4 +229,3 @@ class MainPageState extends State<MainPage> {
     );
   }
 }
-

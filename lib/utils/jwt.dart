@@ -40,15 +40,14 @@ bool checkIsOwner(String token) {
 bool hasPermission(String token,String command) {
   Map<String, dynamic>? map = parseJwt(token);
   if (map != null) {
-    List<String> commands = map['cap'];
     if (map['owner'] == map['id'] ) {
       return true;
-    } else if(commands.contains(command)) {
-      return true;
     } else {
-      return false;
+      List<String> commands = map['cap'];
+      if(commands.contains(command)) {
+        return true;
+      }
     }
-
   }
   return false;
 }

@@ -1,5 +1,4 @@
 String buildDateTimeString(String remoteTime) {
-  print("Converting Time: $remoteTime");
   DateTime now = DateTime.now();
   //
   List<String> timeParts = remoteTime.split(':');

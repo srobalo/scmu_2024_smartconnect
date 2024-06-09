@@ -50,14 +50,14 @@ class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
 
   Widget _buildButton(bool state, String label, Color color) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 1),
       // Adjust the spacing as needed
       child: InkWell(
         onTap: () {
           _updateValue(state);
         },
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
           decoration: BoxDecoration(
             color: _value == state ? color : backgroundColorTertiary,
             borderRadius: BorderRadius.circular(8),
@@ -72,8 +72,11 @@ class _ThreeStateSwitchState extends State<ThreeStateSwitch> {
     );
   }
   void fetchCap(String command) async {
-    var capabilities =  await MyPreferences.loadData<String>("capabilities");
-    if(capabilities != null)  isVisible = hasPermission(capabilities, command);
+    String? capabilities =  await MyPreferences.loadData<String>("capabilities");
+    if(capabilities != null) {
+      isVisible = hasPermission(capabilities, command);
+    }
+    setState(() {});
   }
   void _updateValue(bool newValue) {
     setState(() {
