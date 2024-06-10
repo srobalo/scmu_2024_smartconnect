@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class NotificationToast {
   static void showToast(BuildContext context, String message, {int durationSeconds = 2}) {
+    if (!context.mounted) return;
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(

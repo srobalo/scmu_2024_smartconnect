@@ -7,16 +7,18 @@ class UserWelcomeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-          },
-          child: const Text('Login/Register'),
-        ),
-      ],
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+            },
+            child: const Text('Login/Register'),
+          ),
+        ],
+      ),
     );
   }
 }

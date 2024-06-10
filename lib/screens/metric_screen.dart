@@ -11,10 +11,10 @@ class MetricScreen extends StatefulWidget {
   const MetricScreen({super.key});
 
   @override
-  _MetricScreenState createState() => _MetricScreenState();
+  MetricScreenState createState() => MetricScreenState();
 }
 
-class _MetricScreenState extends State<MetricScreen> {
+class MetricScreenState extends State<MetricScreen> {
   final FirestoreService _firestoreService = FirestoreService();
 
   //
@@ -72,21 +72,24 @@ class _MetricScreenState extends State<MetricScreen> {
               if (actuatorSnapshot.connectionState == ConnectionState.waiting) {
                 return Center(
                     child: LinearProgressIndicator(
-                        backgroundColor: backgroundColorTertiary,
+                      backgroundColor: backgroundColorTertiary,
                     ));
               } else if (actuatorSnapshot.hasError) {
-                return Center(child: Text('Error: ${actuatorSnapshot.error}'));
+                return _buildUnavailable('No actuators available');
               } else
               if (!actuatorSnapshot.hasData || actuatorSnapshot.data!.isEmpty) {
-                return const Center(child: Text('No actuators available'));
+                return _buildUnavailable('No actuators available');
               } else {
-                List<Actuator> actuators = actuatorSnapshot.data ?? cacheActuators;
+                List<Actuator> actuators = actuatorSnapshot.data ??
+                    cacheActuators;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
                     Text(' Actuators', style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold, color: backgroundColorTertiary)),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: backgroundColorTertiary)),
                     const SizedBox(height: 10),
                     ...actuators.map((actuator) =>
                         _buildListTile(actuator.name,
@@ -105,10 +108,10 @@ class _MetricScreenState extends State<MetricScreen> {
                       backgroundColor: backgroundColorTertiary,
                     ));
               } else if (triggerSnapshot.hasError) {
-                return Center(child: Text('Error: ${triggerSnapshot.error}'));
+                return _buildUnavailable('No triggers available');
               } else
               if (!triggerSnapshot.hasData || triggerSnapshot.data!.isEmpty) {
-                return const Center(child: Text('No triggers available'));
+                return _buildUnavailable('No triggers available');
               } else {
                 List<Trigger> triggers = triggerSnapshot.data ?? cacheTriggers;
                 return Column(
@@ -116,7 +119,9 @@ class _MetricScreenState extends State<MetricScreen> {
                   children: [
                     const SizedBox(height: 10),
                     Text(' Triggers', style: TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold, color: backgroundColorTertiary)),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: backgroundColorTertiary)),
                     const SizedBox(height: 10),
                     ...triggers.map((trigger) =>
                         _buildListTile(trigger.name,
@@ -141,6 +146,21 @@ class _MetricScreenState extends State<MetricScreen> {
       child: ListTile(
         title: Text(title),
         subtitle: Text(subtitle),
+      ),
+    );
+  }
+
+  Widget _buildUnavailable(String text) {
+    return Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          Text(text, style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: backgroundColorTertiary)),
+        ],
       ),
     );
   }

@@ -36,8 +36,6 @@ class DeviceInfo {
 class AddDeviceScreenState extends State<AddDeviceScreen> {
   final NetworkInfo _networkInfo = NetworkInfo();
   String? _network = null;
-  Timer? _searchTimer;
-
 
   @override
   void initState() {
@@ -48,6 +46,7 @@ class AddDeviceScreenState extends State<AddDeviceScreen> {
   Future<void> _checkPermissionsAndScan() async {
     if (await Permission.location.request().isGranted) {
       String? ssid;
+
       ssid = await _networkInfo.getWifiName(); // Get the Wi-Fi SSID
 
       if (!mounted) return;
@@ -68,7 +67,6 @@ class AddDeviceScreenState extends State<AddDeviceScreen> {
 
   @override
   void dispose() {
-    _searchTimer?.cancel();
     super.dispose();
   }
 
@@ -106,6 +104,7 @@ class AddDeviceScreenState extends State<AddDeviceScreen> {
                   child: ElevatedButton(
                     onPressed: () async {
                       await _requestBrowserTest();
+                      await _refresh();
                     },
                     child: const Text('Configure network'),
                   )
@@ -182,6 +181,5 @@ class AddDeviceScreenState extends State<AddDeviceScreen> {
     } else {
       NotificationToast.showToast(context, 'Device Error: $device_ip $device_mac');
     }
-    await _refresh();
   }
 }
