@@ -22,11 +22,10 @@ import 'objects/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await MyPreferences.saveData<bool>("LISTEN_RTDB",false);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  await MyPreferences.saveData<bool>("LISTEN_RTDB",false);
   runApp(const MyApp());
 }
 
@@ -184,21 +183,15 @@ class MainPageState extends State<MainPage> {
       body: _selectedIndex == 0 || _selectedIndex == 1
           ? Column(
         children: [
-          Stack(
+          const Stack(
             children: [
-              SizedBox(
-                width: double.infinity,
-                child: Image.asset(
-                  'assets/smart_home_dynamic.jpg',
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const Positioned(
+              ImageSwiper(),
+              Positioned(
                 top: 0,
                 left: 0,
                 child: SunAndMoonWidget(),
               ),
-              const Positioned(
+              Positioned(
                 bottom: 3,
                 left: 20,
                 child: UserWidget(),
@@ -225,6 +218,48 @@ class MainPageState extends State<MainPage> {
         unselectedItemColor: unselectedColor,
         backgroundColor: backgroundColor,
         onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+class ImageSwiper extends StatefulWidget {
+  const ImageSwiper({super.key});
+
+  @override
+  ImageSwiperState createState() => ImageSwiperState();
+}
+
+class ImageSwiperState extends State<ImageSwiper> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final List<String> _imagePaths = [
+    'assets/smart_home_1_dynamic.jpg',
+    'assets/smart_home_1_dynamic_day.jpg',
+    'assets/smart_home_2_dynamic_rustic.jpg',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _imagePaths.length, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 165,
+      child: TabBarView(
+        controller: _tabController,
+        children: _imagePaths.map((path) {
+          return Image.asset(path, fit: BoxFit.cover);
+        }).toList(),
       ),
     );
   }

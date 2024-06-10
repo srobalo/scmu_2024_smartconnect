@@ -10,6 +10,8 @@ class LoginScreen extends StatelessWidget {
   final TextEditingController _emailOrUsernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  LoginScreen({super.key});
+
   Future<void> _login(BuildContext context) async {
     try {
       // Extract email or username and password from text controllers
