@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:scmu_2024_smartconnect/screens/scene_configuration_screen.dart';
-import 'package:scmu_2024_smartconnect/objects/device.dart';
 import 'package:scmu_2024_smartconnect/objects/scene.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scmu_2024_smartconnect/utils/jwt.dart';
@@ -24,6 +23,22 @@ class ScenesScreenState extends State<ScenesScreen> {
   Map<String, bool> sceneActive = {};
   List<Scene> scenes = [];
   final FirestoreService _firestoreService = FirestoreService();
+
+  Map<String, Map<String, dynamic>> notificationCache = {};
+
+  Future<Map<String, dynamic>?> _fetchNotification(String notificationId) async {
+    if (notificationCache.containsKey(notificationId)) {
+      return notificationCache[notificationId];
+    }
+
+    final doc = await FirebaseFirestore.instance.collection('customnotifications').doc(notificationId).get();
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      notificationCache[notificationId] = data;
+      return data;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -153,18 +168,49 @@ class ScenesScreenState extends State<ScenesScreen> {
                 } else {
                   final scene = scenes[index];
                   return Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 2.0, horizontal: 4.0),
+                    margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
                       color: backgroundColorTertiary,
                     ),
                     child: ListTile(
-                      leading: Icon(Icons.smart_toy_outlined,
-                          color: backgroundColorSecondary),
+                      leading: Icon(
+                        Icons.smart_toy_outlined,
+                        color: (sceneActive[scene.name] ?? false) ? Colors.lightBlueAccent : backgroundColorSecondary,
+                      ),
                       title: Text(scene.name),
-                      subtitle: Text(
-                          'Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Triggers: ${scene.triggers.length}, Actions: ${scene.actions.length}'),
+                          if (scene.notifies)
+                            FutureBuilder<Map<String, dynamic>?>(
+                              future: _fetchNotification(scene.customNotificationId),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Text('');
+                                }
+                                if (!snapshot.hasData) {
+                                  return Row(
+                                    children: [
+                                      Icon(Icons.notifications_off, size: 16, color: backgroundColorSecondary),
+                                      const SizedBox(width: 4),
+                                      const Text('Notification: Not found'),
+                                    ],
+                                  );
+                                }
+                                final notificationData = snapshot.data!;
+                                return Row(
+                                  children: [
+                                    Icon(Icons.notifications, size: 16, color: backgroundColorSecondary),
+                                    const SizedBox(width: 4),
+                                    Text('${notificationData['title']}'),
+                                  ],
+                                );
+                              },
+                            ),
+                        ],
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -182,24 +228,23 @@ class ScenesScreenState extends State<ScenesScreen> {
                                 });
                                 print('Scene ${scene.actions[0].command} is now ${value ? 'active' : 'inactive'}');
                                 sendCommandToESP(
-                                    scene.triggers[0].command,
-                                    scene.actions[0].command,
-                                    scene.name,
-                                    value ? "on" : "off");
+                                  scene.triggers[0].command,
+                                  scene.actions[0].command,
+                                  scene.name,
+                                  value ? "on" : "off",
+                                );
                               },
                             ),
                           ),
                           IconButton(
-                            icon:
-                                const Icon(Icons.delete, color: Colors.black54),
+                            icon: const Icon(Icons.delete, color: Colors.black54),
                             onPressed: () {
                               _deleteSceneFromFirebase(scene);
                             },
                           ),
                         ],
                       ),
-                      onTap: () {
-                      },
+                      onTap: () {},
                     ),
                   );
                 }

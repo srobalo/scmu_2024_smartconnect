@@ -142,47 +142,53 @@ Future<void> sendNotifications(
 
   String? mountTime = await MyPreferences.loadData<String>("RTDB_MOUNT_TIME");
   DateTime mount = DateTime.parse(mountTime!);
-  final difference = received.difference(mount);
+  final mountTimeDifference = received.difference(mount);
 
-  if(difference.inSeconds > 5) {
+  //this mount check will ignore first fetch from realtime database
+  if(mountTimeDifference.inSeconds > 5) {
 
-    //get all the scenes that notifies == true
-
-    //foreach scene in scenes check triggers that match the id if notifies get customNotificationId
-    //and do notification process, increment counters by action or trigger id
-
-
+    // Get all the scenes that have notifies set to true
     final QuerySnapshot scenesSnapshot = await FirebaseFirestore.instance
-        .collection('scenes').where('customNotificationId', isEqualTo: id).get();
+        .collection('scenes').where('notifies', isEqualTo: true).get();
 
     if (scenesSnapshot.docs.isNotEmpty) {
-      final DocumentSnapshot sceneDoc = scenesSnapshot.docs.first;
-      final Scene scene = Scene.fromFirestore(sceneDoc);
+      for (var sceneDoc in scenesSnapshot.docs) {
+        final Scene scene = Scene.fromFirestore(sceneDoc);
 
-      if (scene.notifies) {
-        final DocumentSnapshot customNotificationDoc = await FirebaseFirestore
-            .instance.collection('customnotifications').doc(scene.customNotificationId).get();
+        // Check if any of the triggers match the given id
+        bool triggerMatches = scene.triggers.any((trigger) => trigger.id_trigger == id);
 
-        if (customNotificationDoc.exists) {
-          final CustomNotification notification = CustomNotification
-              .fromFirestoreDoc(customNotificationDoc);
+        if (triggerMatches) {
+          // Get the custom notification for the scene
+          final DocumentSnapshot customNotificationDoc = await FirebaseFirestore
+              .instance.collection('customnotifications')
+              .doc(scene.customNotificationId)
+              .get();
 
-          notifyManager.showNotification(
-              title: notification.title, body: notification.description
-          );
+          if (customNotificationDoc.exists) {
+            final CustomNotification notification = CustomNotification
+                .fromFirestoreDoc(customNotificationDoc);
 
-          final EventNotification eventNotification = EventNotification(
-            id: notification.id,
-            userid: notification.userid,
-            title: notification.title,
-            domain: notification.domain,
-            description: notification.description,
-            observation: notification.observation,
-            timestamp: received,
-            shown: true,
-          );
+            // Show the notification
+            notifyManager.showNotification(
+                title: notification.title,
+                body: notification.description
+            );
 
-          await FirebaseDB().sendNotification(eventNotification.toMap());
+            // Create an EventNotification and send it
+            final EventNotification eventNotification = EventNotification(
+              id: notification.id,
+              userid: notification.userid,
+              title: notification.title,
+              domain: notification.domain,
+              description: notification.description,
+              observation: notification.observation,
+              timestamp: received,
+              shown: true,
+            );
+
+            await FirebaseDB().sendNotification(eventNotification.toMap());
+          }
         }
       }
     }
