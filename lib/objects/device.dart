@@ -25,18 +25,19 @@ class Device {
 
   // Convert a Firestore document into a Device object
   static Device fromMap(Map<String, dynamic> map) {
+    Map<String, List<String>> convertedMap = {};
+    map['capabilities'].forEach((key, value) {
+      // Convert the dynamic value to a List<String>
+      convertedMap[key] = [value.toString()];
+    });
     return Device(
       id: map['ip'] ?? '',
       ownerId: map['ownerId'] ?? '',
       name: map['name'] ?? '',
       domain: map['domain'] ?? '',
       mac:map['mac'] ?? '',
-      // state: DeviceState.values.firstWhere(
-      //       (e) => e.toString() == 'DeviceState.' + (map['state'] ?? ''),
-      //   orElse: () => DeviceState.off, // Default state
-      // ),
       ip: map['ip'] ?? '',
-      capabilities: map['capabilities'] ?? {},
+      capabilities: convertedMap
     );
   }
 
@@ -47,7 +48,6 @@ class Device {
       'name': name,
       'domain': domain,
       'mac': mac,
-      // 'state': state.toString(),
       'ip': ip,
       'capabilities': capabilities
     };

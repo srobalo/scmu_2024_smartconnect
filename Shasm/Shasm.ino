@@ -7,7 +7,7 @@
 
 // WiFiUDP instance for the NTP client
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 1);  
 #define HISTORY_LENGTH 5  // Number of readings to keep track of
 
 
@@ -29,6 +29,14 @@ WiFiServer server(80);  // Create a server that listens on port 80
 
 Firebase firebase(firebaseHost);
 
+String formatISO8601(long epochTime) {
+    time_t rawTime = (time_t)epochTime;
+    struct tm * timeInfo = gmtime(&rawTime);  // Get UTC time
+
+    char buffer[25];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", timeInfo);
+    return String(buffer);
+}
 void setup() {
     Serial.begin(9600);  // Start serial communication at 9600 baud rate
     while (!Serial)
@@ -61,11 +69,11 @@ void setup() {
 
     // Initialize a NTPClient to get time
     timeClient.begin();
-    timeClient.setTimeOffset(3600);
+    timeClient.setTimeOffset(0);
     
 timeClient.update();
-    long currentTime = timeClient.getEpochTime();
-    String formattedTime = timeClient.getFormattedTime();
+      long currentTime = timeClient.getEpochTime();
+    String formattedTime = formatISO8601(currentTime);
     firebase.setString("Device/MAC", WiFi.macAddress());
     firebase.setString("Device/IP", WiFi.localIP().toString());
           firebase.setString("Device/timestamp", formattedTime);
@@ -205,18 +213,18 @@ void checkSensors() {
     // Get current time
     timeClient.update();
     long currentTime = timeClient.getEpochTime();
-    String formattedTime = timeClient.getFormattedTime();
+    String formattedTime = formatISO8601(currentTime);
     Serial.print(currentMotion);  // Output current motion reading
 
     delay(500);
     if (lightSceneEnabled) {
         if (lightLevel < 1000) {
-            firebase.setInt("sensorData/photoResistor", ledPin);
-            //firebase.setInt("sensorData/photoResistor/value", lightLevel);
+            firebase.setInt("sensorData/photoResistor/id", ledPin);
+            firebase.setInt("sensorData/photoResistor/value", lightLevel);
             firebase.setString("sensorData/photoResistor/timestamp", formattedTime);
-            activateServo();
+            activateServo(formattedTime);
         } else {
-            deactivateServo();
+            deactivateServo(formattedTime);
         }
     }
     if (ledEnabled_photoresistor) {
@@ -225,8 +233,8 @@ void checkSensors() {
             digitalWrite(ledPin, HIGH);  // Turn on LED if light level is high
             Serial.println("LED On");
         } else {
-            firebase.setInt("sensorData/photoResistor", ledPin);
-            //firebase.setInt("sensorData/photoResistor/value", lightLevel);
+            firebase.setInt("sensorData/photoResistor/id", ledPin);
+            firebase.setInt("sensorData/photoResistor/value", lightLevel);
             firebase.setString("sensorData/photoResistor/timestamp", formattedTime);
             digitalWrite(ledPin, LOW);  // Turn off LED if light level is low
             Serial.println("LED Off");
@@ -241,44 +249,44 @@ void checkSensors() {
     if (motionSensorEnabled && currentMotion == HIGH && previousHistoryClear) {
         Serial.println("Motion Detected");
         myServo.write(0);  // Simulate door opening
-        firebase.setInt("sensorData/motionDetected", motionSensorPin);
+        firebase.setInt("sensorData/motionDetected/id", motionSensorPin);
         //firebase.setInt("sensorData/motionDetected/value", 0);
         firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
         delay(3000);
         myServo.write(90);  // Simulate door closing
-        firebase.setInt("sensorData/motionDetected", motionSensorPin);
+        firebase.setInt("sensorData/motionDetected/id", motionSensorPin);
         //firebase.setInt("sensorData/motionDetected/value", 90);
         firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
     }
 
     if (ledEnabled_motion && currentMotion == HIGH && previousHistoryClear) {
         digitalWrite(ledPin, HIGH);  // Turn on LED
-        //firebase.setInt("sensorData/ledAction", ledPin);
-        //firebase.setInt("sensorData/ledAction/value", 1);
-        //firebase.setString("sensorData/ledAction/timestamp", formattedTime);
+        firebase.setInt("sensorData/ledAction/id", ledPin);
+        firebase.setInt("sensorData/ledAction/value", 1);
+        firebase.setString("sensorData/ledAction/timestamp", formattedTime);
         Serial.println("LED On");
-        firebase.setInt("sensorData/motionDetected", motionSensorPin);
+        firebase.setInt("sensorData/motionDetected/id", motionSensorPin);
         firebase.setString("sensorData/motionDetected/timestamp", formattedTime);
         delay(5000);
         digitalWrite(ledPin, LOW);  // Turn off LED
-        //firebase.setInt("sensorData/ledAction", ledPin);
-        //firebase.setInt("sensorData/ledAction/value", 0);
-        //firebase.setString("sensorData/ledAction/timestamp", formattedTime);
+        firebase.setInt("sensorData/ledAction/id", ledPin);
+        firebase.setInt("sensorData/ledAction/value", 0);
+        firebase.setString("sensorData/ledAction/timestamp", formattedTime);
         Serial.println("LED Off");
     }
 }
-void activateServo() {
+void activateServo(String formattedTime) {
     Serial.println("Activating servo");
-    //firebase.setInt("sensorData/servoAction", servoPin);
-    //firebase.setInt("sensorData/servoAction/value", 180);
-    //firebase.setString("sensorData/servoAction/timestamp", formattedTime);
-    myServo.write(180);  // Rotate to 180 degrees
+    firebase.setInt("sensorData/servoAction/id", servoPin);
+    firebase.setInt("sensorData/servoAction/value", 180);
+    firebase.setString("sensorData/servoAction/timestamp", formattedTime);
+    myServo.write(90);  // Rotate to 180 degrees
 }
 
-void deactivateServo() {
+void deactivateServo(String formattedTime) {
     Serial.println("Deactivating servo");
-    //firebase.setInt("sensorData/servoAction", servoPin);
-    //firebase.setInt("sensorData/servoAction/value", 0);
-    //firebase.setString("sensorData/servoAction/timestamp", formattedTime);
+    firebase.setInt("sensorData/servoAction/id", servoPin);
+    firebase.setInt("sensorData/servoAction/value", 0);
+    firebase.setString("sensorData/servoAction/timestamp", formattedTime);
     myServo.write(0);  // Rotate back to 0 degrees
 }
