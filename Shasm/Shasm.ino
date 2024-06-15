@@ -7,7 +7,7 @@
 
 // WiFiUDP instance for the NTP client
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 1);  
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 1);
 #define HISTORY_LENGTH 5  // Number of readings to keep track of
 
 
@@ -70,13 +70,13 @@ void setup() {
     // Initialize a NTPClient to get time
     timeClient.begin();
     timeClient.setTimeOffset(0);
-    
-timeClient.update();
-      long currentTime = timeClient.getEpochTime();
+
+    timeClient.update();
+    long currentTime = timeClient.getEpochTime();
     String formattedTime = formatISO8601(currentTime);
     firebase.setString("Device/MAC", WiFi.macAddress());
     firebase.setString("Device/IP", WiFi.localIP().toString());
-          firebase.setString("Device/timestamp", formattedTime);
+    firebase.setString("Device/timestamp", formattedTime);
 }
 
 void loop() {
@@ -169,6 +169,22 @@ void scene() {
                         client.println("LED control motion disabled");
                         client.println();
                         Serial.println("LED control motion disabled");
+                        break;
+                    } else if (currentLine.startsWith("GET /32/on")){
+                        digitalWrite(ledPin, HIGH);  // Turn on LED if light level is high
+                        Serial.println("LED On");
+                        break;
+                    } else if (currentLine.startsWith("GET /32/off")){
+                        digitalWrite(ledPin, LOW);  // Turn on LED if light level is high
+                        Serial.println("LED Off");
+                        break;
+                    } else if (currentLine.startsWith("GET /13/on")){
+                        myServo.write(90); // Turn on LED if light level is high
+                        Serial.println("Door Opened");
+                        break;
+                    } else if (currentLine.startsWith("GET /13/on")){
+                        myServo.write(0); // Turn on LED if light level is high
+                        Serial.println("Door Closed");
                         break;
                     }
                     currentLine = "";      // Clear the currentLine
