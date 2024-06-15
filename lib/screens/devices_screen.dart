@@ -67,11 +67,15 @@ class DevicesScreenState extends State<DevicesScreen>
     }
   }
 
-  void sendCommand(
-      String actuatorId, String commandAction, String deviceIp) async {
+  void sendCommand(String actuatorId, String commandAction) async {
+    String? deviceIp;
     try {
-      String? deviceIp = await RealtimeDataService(path: "Device/IP").getFetchData();
-      final url = Uri.parse('http://${deviceIp}/${actuatorId}/${commandAction}');
+      deviceIp = await MyPreferences.loadData<String>("DEVICE_IP");
+      print('preferences $deviceIp');
+
+      String toSend = 'http://$deviceIp/$actuatorId/$commandAction';
+      print(toSend);
+      final url = Uri.parse(toSend);
       final response = await http.get(url);
       if (response.statusCode == 200) {
         print(
@@ -180,10 +184,8 @@ class DevicesScreenState extends State<DevicesScreen>
                                 "Error: No commandId for device ${devices[index].name}");
                             return; // Prevent further action if commandId is null
                           }else {
-                            String commandAction =
-                            (newState == devices[index].state) ? "on" : "off";
-                            sendCommand(devices[index].id_action.toString() ?? '1', commandAction,
-                                devices[index].command ?? '1');
+                            String commandAction = devices[index].state ? "on" : "off";
+                            sendCommand(devices[index].id_action.toString(), commandAction);
                             print(
                                 "Command sent for ${devices[index]
                                     .name} with action $commandAction");
