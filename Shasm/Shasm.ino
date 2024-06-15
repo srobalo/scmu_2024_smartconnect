@@ -7,7 +7,7 @@
 
 // WiFiUDP instance for the NTP client
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 1);  
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0);  
 #define HISTORY_LENGTH 5  // Number of readings to keep track of
 
 
@@ -204,7 +204,7 @@ bool checkMotionHistory() {
 
 
 void checkSensors() {
-    digitalWrite(ledPin, LOW);
+    // digitalWrite(ledPin, LOW);
     int lightLevel = analogRead(photoResistorPin);  // Read the light level
 
     // Read motion sensor and update history
@@ -278,7 +278,7 @@ void checkSensors() {
 void activateServo(String formattedTime) {
     Serial.println("Activating servo");
     firebase.setInt("sensorData/servoAction/id", servoPin);
-    firebase.setInt("sensorData/servoAction/value", 180);
+    firebase.setInt("sensorData/servoAction/value", 90);
     firebase.setString("sensorData/servoAction/timestamp", formattedTime);
     myServo.write(90);  // Rotate to 180 degrees
 }
