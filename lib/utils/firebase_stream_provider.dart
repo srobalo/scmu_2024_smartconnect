@@ -105,7 +105,10 @@ class FirebaseService {
 
             DateTime theTimestamp;
             try {
-              theTimestamp = DateTime.parse(buildDateTimeString(timestampString));
+              print("Received Timestamp: $timestampString");
+              timestampString += '.000000';
+              print("Changed to Timestamp: $timestampString");
+              theTimestamp = DateTime.parse(timestampString);
               await updateCounters(path, id, theTimestamp);
               print("Time: ${theTimestamp.toIso8601String()}");
             } catch (e) {
@@ -139,7 +142,6 @@ Future<void> updateCounters(String path, int id, DateTime received) async {
 Future<void> sendNotifications(
     NotificationManager notifyManager,
     String path, int id, DateTime received) async {
-
   String? mountTime = await MyPreferences.loadData<String>("RTDB_MOUNT_TIME");
   DateTime mount = DateTime.parse(mountTime!);
   final mountTimeDifference = received.difference(mount);

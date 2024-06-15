@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 //
 import 'package:scmu_2024_smartconnect/defaults/default_values.dart';
 import 'package:scmu_2024_smartconnect/screens/configuration_screen.dart';
@@ -26,7 +27,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(const MyApp());
+  });
+
 }
 
 class MyApp extends StatelessWidget {
